@@ -1,6 +1,8 @@
 # discord-fs
 An attempt at using Discord as a filesystem, using FUSE.
 
+The current goal is to make files stored on Discord available through FUSE at all.
+
 ## TODO
 - Make FUSE work
 - Make the Discord connection work
@@ -8,9 +10,12 @@ An attempt at using Discord as a filesystem, using FUSE.
 
 ### Bot - FUSE connection
 - FUSE POC
-- Splitting files
+- Connect to Discord
 
 ### Bot - Discord connection
 - File up-/download POC
-- More advanced file handling
-- Handle split files
+- API to FUSE
+
+## Plans for future
+- Handle larger files by splitting them
+- More advanced filesystem operations
