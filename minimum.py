@@ -23,12 +23,17 @@ class Passthrough(Operations):
 
     # Filesystem methods
     # ==================
+
+    #Needed for basic filesystem access
     def getattr(self, path, fh=None):
         full_path = self._full_path(path)
         st = os.lstat(full_path)
-        return dict((key, getattr (st, key)) for key in ('st_atime', 'st_ctime',
-                     'st_gid', 'st_mode', 'st_mtime', 'st_nlink', 'st_size', 'st_uid'))
+        if path != "/":
+            return {'st_atime': 0.0, 'st_ctime': 0.0, 'st_gid': 1000, 'st_mode': 33204, 'st_mtime': 0.0, 'st_nlink': 1, 'st_size': 0, 'st_uid': 1000}
+        else:
+            return {'st_atime': 0.0, 'st_ctime': 0.0, 'st_gid': 1000, 'st_mode': 16877, 'st_mtime': 0.0, 'st_nlink': 1, 'st_size': 0, 'st_uid': 1000}
 
+    #Needed for directory listings
     def readdir(self, path, fh):
         full_path = self._full_path(path)
 
@@ -38,20 +43,19 @@ class Passthrough(Operations):
         for r in dirents:
             yield r
 
-    def statfs(self, path):
-        full_path = self._full_path(path)
-        stv = os.statvfs(full_path)
-        return dict((key, getattr(stv, key)) for key in ('f_bavail', 'f_bfree',
-            'f_blocks', 'f_bsize', 'f_favail', 'f_ffree', 'f_files', 'f_flag',
-            'f_frsize', 'f_namemax'))
+    #Needed for file removal
+    def unlink(self, path):
+        return os.unlink(self._full_path(path))
 
     # File methods
     # ============
 
+    #Needed to use file 
     def open(self, path, flags):
         full_path = self._full_path(path)
         return os.open(full_path, flags)
 
+    #Needed to create file
     def create(self, path, mode, fi=None):
         uid, gid, pid = fuse_get_context()
         full_path = self._full_path(path)
@@ -59,25 +63,32 @@ class Passthrough(Operations):
         os.chown(full_path,uid,gid) #chown to context uid & gid
         return fd
 
+    #Needed to read file
     def read(self, path, length, offset, fh):
         os.lseek(fh, offset, os.SEEK_SET)
         return os.read(fh, length)
 
+    #Needed to write file
     def write(self, path, buf, offset, fh):
         os.lseek(fh, offset, os.SEEK_SET)
         return os.write(fh, buf)
 
+    #TODO Is this needed??
     def truncate(self, path, length, fh=None):
         full_path = self._full_path(path)
         with open(full_path, 'r+') as f:
             f.truncate(length)
 
+    #Needed to make sure changes are put in practice
+    #Might see use in later applications (e.g. forcing write of metadata)
     def flush(self, path, fh):
         return os.fsync(fh)
 
+    #Needed to use file
     def release(self, path, fh):
         return os.close(fh)
 
+    #See flush
     def fsync(self, path, fdatasync, fh):
         return self.flush(path, fh)
 
