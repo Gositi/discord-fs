@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 #Taken from https://github.com/skorokithakis/python-fuse-sample/blob/master/passthrough.py
 
@@ -131,7 +131,7 @@ class Passthrough(Operations):
 
 
 def main(mountpoint, root):
-    FUSE(Passthrough(root), mountpoint, nothreads=True, foreground=True, allow_other=True)
+    FUSE(Passthrough(root), mountpoint, nothreads=True, foreground=True, allow_other=False)
 
 
 if __name__ == '__main__':
