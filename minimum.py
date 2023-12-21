@@ -45,6 +45,7 @@ class Passthrough(Operations):
 
     #Needed for file removal
     def unlink(self, path):
+        print ("re")
         return os.unlink(self._full_path(path))
 
     # File methods
@@ -52,11 +53,13 @@ class Passthrough(Operations):
 
     #Needed to use file 
     def open(self, path, flags):
+        print ("op")
         full_path = self._full_path(path)
         return os.open(full_path, flags)
 
     #Needed to create file
     def create(self, path, mode, fi=None):
+        print ("cr")
         uid, gid, pid = fuse_get_context()
         full_path = self._full_path(path)
         fd = os.open(full_path, os.O_WRONLY | os.O_CREAT, mode)
@@ -65,27 +68,25 @@ class Passthrough(Operations):
 
     #Needed to read file
     def read(self, path, length, offset, fh):
+        print ("re")
         os.lseek(fh, offset, os.SEEK_SET)
         return os.read(fh, length)
 
     #Needed to write file
     def write(self, path, buf, offset, fh):
+        print ("wr")
         os.lseek(fh, offset, os.SEEK_SET)
         return os.write(fh, buf)
-
-    #TODO Is this needed??
-    def truncate(self, path, length, fh=None):
-        full_path = self._full_path(path)
-        with open(full_path, 'r+') as f:
-            f.truncate(length)
 
     #Needed to make sure changes are put in practice
     #Might see use in later applications (e.g. forcing write of metadata)
     def flush(self, path, fh):
+        print ("fl")
         return os.fsync(fh)
 
     #Needed to use file
     def release(self, path, fh):
+        print ("cl")
         return os.close(fh)
 
     #See flush
