@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 
 import os
-import sys
 import errno
 
 from fuse import FUSE, FuseOSError, Operations, fuse_get_context
@@ -21,17 +20,32 @@ class Discord:
         for r in dirents:
             yield r
 
+    #Remove source file
+    def remove (self, path):
+        os.unlink (self.source + path)
+
+    #Make file available to temp
+    def open (self, path):
+        if not os.path.exists (self.temp + path):
+            if os.path.exists (self.source + path):
+                os.system ("cp " + self.source + path + " " + self.temp + path)
+
+    #Remove file from temp
+    def close (self, path):
+        os.system ("mv " + self.temp + path + " " + self.source + path)
+
 class Passthrough (Operations):
     def __init__(self, source, temp):
         self.source = source
         self.temp = temp
         self.dc = Discord (source, temp)
+        self.list = {}
  
     #Get basic file attributes
     def getattr (self, path, fh=None):
         st = os.lstat(self.source + path)
         if path != "/":
-            return {'st_atime': 0.0, 'st_ctime': 0.0, 'st_gid': 1000, 'st_mode': 33204, 'st_mtime': 0.0, 'st_nlink': 1, 'st_size': 0, 'st_uid': 1000}
+            return {'st_atime': 0.0, 'st_ctime': 0.0, 'st_gid': 1000, 'st_mode': 33204, 'st_mtime': 0.0, 'st_nlink': 1, 'st_size': 25000000, 'st_uid': 1000}
         else:
             return {'st_atime': 0.0, 'st_ctime': 0.0, 'st_gid': 1000, 'st_mode': 16877, 'st_mtime': 0.0, 'st_nlink': 1, 'st_size': 0, 'st_uid': 1000}
 
@@ -42,11 +56,56 @@ class Passthrough (Operations):
         for i in dirents:
             yield i
 
-def main(mountpoint):
+    #Remove file
+    def unlink (self, path):
+        print ("rm")
+        self.dc.remove (path)
+        if os.path.exists (self.temp + path):
+            os.unlink (self.temp + path)
+
+    #Opening of file
+    def open (self, path, flags):
+        print ("op")
+        self.dc.open (path)
+        if not path in self.list.keys ():
+            self.list [path] = 0
+        self.list [path] += 1
+        return os.open (self.temp + path, flags)
+    
+    #Write buffered file contents to the actual file
+    def flush (self, path, fh):
+        print ("fl")
+        return os.fsync (fh)
+    def fsync (self, path, fdatasync, fh):
+        return self.flush (path, fh)
+
+    #Close file
+    def release (self, path, fh):
+        print ("cl")
+        #Close file
+        ret = os.close (fh)
+        self.list [path] -= 1
+        #Remove file from temp if it isn't used anymore
+        if self.list [path] <= 0:
+            self.list.pop (path)
+            self.dc.close (path)
+        return ret
+
+    #Read data from file
+    def read(self, path, length, offset, fh):
+        print ("re")
+        os.lseek(fh, offset, os.SEEK_SET)
+        return os.read(fh, length)
+
+    #TODO Write data to file
+
+    #TODO Create file
+
+def main():
     source = "./ref/"
     temp = "./temp/"
+    mountpoint = "./testdir/"
     FUSE(Passthrough(source, temp), mountpoint, nothreads=True, foreground=True, allow_other=False)
 
-
 if __name__ == '__main__':
-    main(sys.argv[1])
+    main()

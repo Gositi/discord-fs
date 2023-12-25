@@ -29,7 +29,7 @@ class Passthrough(Operations):
         full_path = self._full_path(path)
         st = os.lstat(full_path)
         if path != "/":
-            return {'st_atime': 0.0, 'st_ctime': 0.0, 'st_gid': 1000, 'st_mode': 33204, 'st_mtime': 0.0, 'st_nlink': 1, 'st_size': 0, 'st_uid': 1000}
+            return {'st_atime': 0.0, 'st_ctime': 0.0, 'st_gid': 1000, 'st_mode': 33204, 'st_mtime': 0.0, 'st_nlink': 1, 'st_size': 25000000, 'st_uid': 1000}
         else:
             return {'st_atime': 0.0, 'st_ctime': 0.0, 'st_gid': 1000, 'st_mode': 16877, 'st_mtime': 0.0, 'st_nlink': 1, 'st_size': 0, 'st_uid': 1000}
 
@@ -45,7 +45,7 @@ class Passthrough(Operations):
 
     #Needed for file removal
     def unlink(self, path):
-        print ("re")
+        print ("rm")
         return os.unlink(self._full_path(path))
 
     # File methods
