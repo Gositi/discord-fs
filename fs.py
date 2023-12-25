@@ -38,6 +38,10 @@ class Discord:
     def sync (self, path):
         os.system ("cp " + self.temp + path + " " + self.source + path)
 
+    #Check for the existence of a specific file
+    def exists (self, path):
+        return os.path.exists (self.source + path)
+
 class Passthrough (Operations):
     def __init__(self, source, temp):
         self.source = source
@@ -47,8 +51,9 @@ class Passthrough (Operations):
  
     #Get basic file attributes
     def getattr (self, path, fh=None):
-        st = os.lstat(self.source + path)
-        if path != "/":
+        if not self.dc.exists (path):
+            raise OSError (errno.ENOENT, "File does not exist") #Makes filesystem well-behaved
+        elif path != "/":
             return {'st_atime': 0.0, 'st_ctime': 0.0, 'st_gid': 1000, 'st_mode': 33204, 'st_mtime': 0.0, 'st_nlink': 1, 'st_size': 25000000, 'st_uid': 1000}
         else:
             return {'st_atime': 0.0, 'st_ctime': 0.0, 'st_gid': 1000, 'st_mode': 16877, 'st_mtime': 0.0, 'st_nlink': 1, 'st_size': 0, 'st_uid': 1000}
@@ -96,10 +101,10 @@ class Passthrough (Operations):
         return ret
 
     #Read data from file
-    def read(self, path, length, offset, fh):
+    def read (self, path, length, offset, fh):
         print ("re")
-        os.lseek(fh, offset, os.SEEK_SET)
-        return os.read(fh, length)
+        os.lseek (fh, offset, os.SEEK_SET)
+        return os.read (fh, length)
 
     #TODO Write data to file
 

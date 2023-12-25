@@ -56,7 +56,7 @@ class Passthrough(Operations):
         print ("op")
         full_path = self._full_path(path)
         return os.open(full_path, flags)
-
+    
     #Needed to create file
     def create(self, path, mode, fi=None):
         print ("cr")
