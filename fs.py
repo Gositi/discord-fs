@@ -106,7 +106,11 @@ class Passthrough (Operations):
         os.lseek (fh, offset, os.SEEK_SET)
         return os.read (fh, length)
 
-    #TODO Write data to file
+    #Write data to file
+    def write (self, path, buf, offset, fh):
+        print ("wr")
+        os.lseek(fh, offset, os.SEEK_SET)
+        return os.write(fh, buf)
 
     #Needed to create file
     def create(self, path, mode, fi=None):
