@@ -34,6 +34,10 @@ class Discord:
     def close (self, path):
         os.system ("mv " + self.temp + path + " " + self.source + path)
 
+    #Sync file from temp
+    def sync (self, path):
+        os.system ("cp " + self.temp + path + " " + self.source + path)
+
 class Passthrough (Operations):
     def __init__(self, source, temp):
         self.source = source
@@ -99,7 +103,18 @@ class Passthrough (Operations):
 
     #TODO Write data to file
 
-    #TODO Create file
+    #Needed to create file
+    def create(self, path, mode, fi=None):
+        print ("cr")
+        #Create file in temp
+        uid, gid, pid = fuse_get_context()
+        fd = os.open(self.temp + path, os.O_WRONLY | os.O_CREAT, mode)
+        os.chown(self.temp + path, uid, gid) #chown to context uid & gid
+        #Sync file to source
+        self.dc.sync (path)
+        #Add file to list
+        self.list [path] = 1
+        return fd
 
 def main():
     source = "./ref/"
