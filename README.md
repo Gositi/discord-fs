@@ -6,7 +6,7 @@ The current goal is to make files stored on Discord available through FUSE at al
 ## TODO
 - [DONE] Make FUSE work
 - Make the Discord connection work
-- Stitch them together
+- [DONE] Stitch them together
 
 ### Bot - FUSE connection
 - [DONE] FUSE POC
@@ -14,8 +14,9 @@ The current goal is to make files stored on Discord available through FUSE at al
 
 ### Bot - Discord connection
 - File up-/download POC
-- API to FUSE
+- [DONE] API to FUSE
 
 ## Plans for future
 - Handle larger files by splitting them
 - More advanced filesystem operations
+- Multi-user functionality
