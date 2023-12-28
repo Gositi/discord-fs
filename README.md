@@ -5,12 +5,12 @@ The current goal is to make files stored on Discord available through FUSE at al
 
 ## TODO
 - [DONE] Make FUSE work
-- Make the Discord connection work
+- [WIP] Make the Discord connection work
 - [DONE] Stitch them together
 
 ### Bot - FUSE connection
 - [DONE] FUSE POC
-- Connect to Discord
+- [DONE] Connect to Discord
 
 ### Bot - Discord connection
 - File up-/download POC
