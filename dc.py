@@ -9,9 +9,10 @@ import multiprocessing as mp
 import time
 
 class Bot (discord.Client):
-    def stp (self, channelID, q):
+    def stp (self, channelID, q, e):
         self.channelID = channelID
         self.q = q
+        self.e = e
 
     async def on_ready (self):
         channel = self.get_channel (self.channelID)
@@ -19,7 +20,9 @@ class Bot (discord.Client):
         msg = "Startup :)"
         while msg != "exit":
             await channel.send (msg)
+            self.e.set ()
             msg = self.q.get ()
+        self.e.set ()
         await self.close ()
 
 #Simulates a Discord connection, by implementing a lot of basic filesystem functionality
@@ -69,12 +72,15 @@ def main ():
     intents = discord.Intents.default ()
     client = Bot (intents = intents)
     q = mp.Queue ()
-    client.stp (conf ["channel"], q)
+    e = mp.Event ()
+    client.stp (conf ["channel"], q, e)
     p = mp.Process (target = client.run, args = (conf ["token"],))
     p.start ()
     q.get ()
     msg = ""
     while msg != "exit":
+        e.wait ()
+        e.clear ()
         msg = input ("Message to send: ")
         q.put (msg)
 
