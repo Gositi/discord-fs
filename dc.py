@@ -23,6 +23,7 @@ class Bot (discord.Client):
             self.e.set ()
             msg = self.q.get ()
         self.e.set ()
+        await channel.send ("Shutdown :(")
         await self.close ()
 
 #Simulates a Discord connection, by implementing a lot of basic filesystem functionality
