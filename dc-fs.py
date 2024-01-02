@@ -1,5 +1,9 @@
 #!/usr/bin/env python3
 
+#Discord-fs, uses Discord as cloud storage accessed through a filesystem
+#Copyright (C) 2024 Simon Bryntse
+#License (GPL 3.0) provided in file 'LICENSE'
+
 import fs, dc
 import fuse
 

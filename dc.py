@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 
 #Provides class for Discord connection and interface
+#Copyright (C) 2024 Simon Bryntse
+#License (GPL 3.0) provided in file 'LICENSE'
 
 import os
 import discord
