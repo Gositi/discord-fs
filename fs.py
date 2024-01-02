@@ -1,8 +1,12 @@
 #!/usr/bin/env python3
 
 #Provides class for FUSE filesystem functionality
-#Heavily modified from https://github.com/skorokithakis/python-fuse-sample/blob/master/passthrough.py
-#License for exactly those pieces of code can be found in file LICENSE2
+#Copyright (C) 2024 Simon Bryntse
+#License (GPL 3.0) provided in file 'LICENSE'
+
+#Derived from https://github.com/skorokithakis/python-fuse-sample
+#Copyright (C) 2016 Stavros Korokithakis
+#License (BSD-2-Clause) provided in file 'LICENSE-2'
 
 import os
 import errno
