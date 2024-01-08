@@ -13,7 +13,7 @@ def main():
     temp = "./tmp/"
     mount = "./mnt/"
     #Spin up system
-    discord = dc.Discord (temp) #TODO make Discord interface
+    discord = dc.Discord (temp)
     fuse.FUSE(fs.Filesystem(discord, temp), mount, nothreads=True, foreground=True, allow_other=False)
 
 if __name__ == '__main__':

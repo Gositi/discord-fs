@@ -7,85 +7,125 @@
 import os
 import discord
 import json
-import multiprocessing as mp
+import threading
+import queue
 import time
 
+#Class for the actual bot, made to be run in a separate process
 class Bot (discord.Client):
-    def stp (self, channelID, q, e):
+    #Basic setup
+    def stp (self, channelID, sq, rq, e, temp):
         self.channelID = channelID
-        self.q = q
+        self.sq = sq
+        self.rq = rq
         self.e = e
+        self.temp = temp
 
+    #Main thread function, handling up- and download of files
     async def on_ready (self):
-        channel = self.get_channel (self.channelID)
-        self.q.put ("Ready.")
-        msg = "Startup :)"
-        while msg != "exit":
-            await channel.send (msg)
+        self.channel = self.get_channel (self.channelID)
+        self.rq.put ("Ready.")
+        task = {"task": None}
+
+        while task ["task"] != "exit":
+            #Handle task
+            if task ["task"] == "download":
+                await self.download (task ["id"], task ["name"])
+            elif task ["task"] == "upload":
+                self.rq.put (await self.upload (task ["name"]))
+            elif task ["task"] == "delete":
+                await self.delete (task ["id"])
+            else:
+                pass
+
+            #Finish and get next task
             self.e.set ()
-            msg = self.q.get ()
+            task = self.sq.get ()
+
+        #Shutdown
         self.e.set ()
-        await channel.send ("Shutdown :(")
         await self.close ()
+
+    #Function to download attached file to a certain message
+    async def download (self, msgID, name):
+        msg = await self.channel.fetch_message (msgID)
+        await msg.attachments [0].save (fp = self.temp + name)
+
+    #Function to upload message with file attached
+    async def upload (self, name):
+        with open (self.temp + name, "rb") as f:
+            msg = await self.channel.send (content="File upload", file=discord.File (f))
+        return msg.id
+
+    #Function to delete message
+    async def delete (self, msgID):
+        msg = await self.channel.fetch_message (msgID)
+        await msg.delete ()
 
 #Simulates a Discord connection, by implementing a lot of basic filesystem functionality
 class Discord:
     def __init__(self, temp):
-        self.source = "./ref/"
         self.temp = temp
+
+        #Load config file
+        with open ("config", "r") as f:
+            self.conf = json.load (f)
+
+        #Load FAT file
+        with open ("fat", "r") as f:
+            self.fat = json.load (f)
+
+        #Setup bot
+        client = Bot (intents = discord.Intents.default ())
+        self.sq = queue.Queue ()
+        self.rq = queue.Queue ()
+        self.e = threading.Event ()
+        client.stp (self.conf ["channel"], self.sq, self.rq, self.e, temp)
+        self.t = threading.Thread (target = client.run, args = (self.conf ["token"],), kwargs={})
+        #"log_handler": None
+        self.t.start ()
+
+        #Wait for ready
+        self.rq.get ()
 
     #Provide list of files available
     def readdir (self, path):
-        dirents = []
-        if os.path.isdir(self.source + path):
-            dirents.extend(os.listdir(self.source + path))
-        for r in dirents:
-            yield r
+        for key in self.fat.keys ():
+            yield key
 
     #Remove source file
     def remove (self, path):
-        os.unlink (self.source + path)
+        self.e.clear ()
+        self.sq.put ({"task": "delete", "id": self.fat [path]})
+        self.e.wait ()
+        self.fat.pop (path)
 
     #Make file available to temp
     def open (self, path):
         if not os.path.exists (self.temp + path):
-            if os.path.exists (self.source + path):
-                os.system ("cp " + self.source + path + " " + self.temp + path)
+            if path in self.fat.keys ():
+                self.e.clear ()
+                self.sq.put ({"task": "download", "id": self.fat [path], "name": path})
+                self.e.wait ()
 
     #Remove file from temp
     def close (self, path):
-        os.system ("mv " + self.temp + path + " " + self.source + path)
+        self.e.clear ()
+        self.sq.put ({"task": "upload", "name": path})
+        self.e.wait ()
+        self.fat [path] = self.rq.get () #TODO remove old file from Discord
 
     #Make sure a certain file in temp also exists at source
     def sync (self, path):
-        os.system ("cp " + self.temp + path + " " + self.source + path)
+        self.e.clear ()
+        self.sq.put ({"task": "upload", "name": path})
+        self.e.wait ()
+        self.fat [path] = self.rq.get ()
 
     #Check for the existence of a specific file
     def exists (self, path):
-        return os.path.exists (self.source + path)
+        return (path in self.fat.keys ()) or (path == "/")
 
     #Rename a file
     def rename (self, old, new):
-        os.rename (self.source + old, self.source + new)
-
-#Testing function
-def main ():
-    with open ("config", "r") as f:
-        conf = json.load (f)
-    intents = discord.Intents.default ()
-    client = Bot (intents = intents)
-    q = mp.Queue ()
-    e = mp.Event ()
-    client.stp (conf ["channel"], q, e)
-    p = mp.Process (target = client.run, args = (conf ["token"],))
-    p.start ()
-    q.get ()
-    msg = ""
-    while msg != "exit":
-        e.wait ()
-        e.clear ()
-        msg = input ("Message to send: ")
-        q.put (msg)
-
-if __name__ == "__main__":
-    main ()
+        self.fat [new] = self.fat.pop (old)
