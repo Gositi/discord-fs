@@ -81,8 +81,7 @@ class Discord:
         self.rq = queue.Queue ()
         self.e = threading.Event ()
         client.stp (self.conf ["channel"], self.sq, self.rq, self.e, temp)
-        self.t = threading.Thread (target = client.run, args = (self.conf ["token"],), kwargs={})
-        #"log_handler": None
+        self.t = threading.Thread (target = client.run, args = (self.conf ["token"],), kwargs={"log_handler": None})
         self.t.start ()
 
         #Wait for ready
@@ -91,7 +90,7 @@ class Discord:
     #Provide list of files available
     def readdir (self, path):
         for key in self.fat.keys ():
-            yield key
+            yield key [1:]
 
     #Remove source file
     def remove (self, path):
@@ -99,6 +98,8 @@ class Discord:
         self.sq.put ({"task": "delete", "id": self.fat [path]})
         self.e.wait ()
         self.fat.pop (path)
+        with open ("fat", "w") as f:
+            json.dump (self.fat, f)
 
     #Make file available to temp
     def open (self, path):
@@ -114,6 +115,8 @@ class Discord:
         self.sq.put ({"task": "upload", "name": path})
         self.e.wait ()
         self.fat [path] = self.rq.get () #TODO remove old file from Discord
+        with open ("fat", "w") as f:
+            json.dump (self.fat, f)
 
     #Make sure a certain file in temp also exists at source
     def sync (self, path):
@@ -121,6 +124,8 @@ class Discord:
         self.sq.put ({"task": "upload", "name": path})
         self.e.wait ()
         self.fat [path] = self.rq.get ()
+        with open ("fat", "w") as f:
+            json.dump (self.fat, f)
 
     #Check for the existence of a specific file
     def exists (self, path):
@@ -129,3 +134,5 @@ class Discord:
     #Rename a file
     def rename (self, old, new):
         self.fat [new] = self.fat.pop (old)
+        with open ("fat", "w") as f:
+            json.dump (self.fat, f)
