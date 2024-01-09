@@ -67,6 +67,7 @@ class Filesystem (fuse.Operations):
         if self.list [path] <= 0:
             self.list.pop (path)
             self.dc.close (path)
+            os.unlink (self.temp + path)
         return ret
 
     #Read data from file
@@ -97,10 +98,10 @@ class Filesystem (fuse.Operations):
     #Rename file
     def rename (self, old, new):
         print ("mv")
-        #Remove from temp
+        #Rename in temp
         if os.path.exists (self.temp + old):
             os.rename (self.temp + old, self.temp + new)
-        #Remove from source
+        #Rename at source
         self.dc.rename (old, new)
         #Make change in list of open files
         if old in self.list.keys ():
