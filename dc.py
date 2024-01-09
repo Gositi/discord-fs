@@ -111,19 +111,32 @@ class Discord:
 
     #Remove file from temp
     def close (self, path):
+        #Remove old file
+        self.e.clear ()
+        self.sq.put ({"task": "delete", "id": self.fat [path]})
+        self.e.wait ()
+        #Upload new file
         self.e.clear ()
         self.sq.put ({"task": "upload", "name": path})
         self.e.wait ()
-        self.fat [path] = self.rq.get () #TODO remove old file from Discord
+        self.fat [path] = self.rq.get ()
+        #Write new FAT
         with open ("fat", "w") as f:
             json.dump (self.fat, f)
 
     #Make sure a certain file in temp also exists at source
     def sync (self, path):
+        #Remove old file, if it exists
+        if path in self.fat.keys ():
+            self.e.clear ()
+            self.sq.put ({"task": "delete", "id": self.fat [path]})
+            self.e.wait ()
+        #Upload new file
         self.e.clear ()
         self.sq.put ({"task": "upload", "name": path})
         self.e.wait ()
         self.fat [path] = self.rq.get ()
+        #Write new FAT
         with open ("fat", "w") as f:
             json.dump (self.fat, f)
 
