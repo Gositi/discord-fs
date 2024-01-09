@@ -1,22 +1,23 @@
 # discord-fs
 An attempt at using Discord as a filesystem, using FUSE.
 
-The current goal is to make files stored on Discord available through FUSE at all.
+This is a simple working implementation, lacking much functionality (such as subdirectories or large files).
+
+## Usage
+Before using the FS, you'll need to fix some setup.
+I'll assume you are techy enough to do this yourself, so I'll just tell you in broad terms what to do.
+- Create (or use) a discord bot for the FS
+- Fill in bot token and FS channel ID in file `config`
+- Import libraries in `requirements.txt`
+
+After this is done you should be good to go.
+The FS is started by executing `dc-fs.py`.
 
 ## TODO
-- [DONE] Make FUSE work
-- [WIP] Make the Discord connection work
-- [DONE] Stitch them together
+- Store FAT at Discord too
+- Store more file information (mode, etc.) in FAT
 
-### Bot - FUSE connection
-- [DONE] FUSE POC
-- [DONE] Connect to Discord
-
-### Bot - Discord connection
-- File up-/download POC
-- [DONE] API to FUSE
-
-## Plans for future
+## Plans and ideas for future
 - Handle larger files by splitting them
-- More advanced filesystem operations
 - Multi-user functionality
+- Implement directories
