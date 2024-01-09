@@ -81,7 +81,8 @@ class Discord:
         self.rq = queue.Queue ()
         self.e = threading.Event ()
         client.stp (self.conf ["channel"], self.sq, self.rq, self.e, temp)
-        self.t = threading.Thread (target = client.run, args = (self.conf ["token"],), kwargs={"log_handler": None})
+        self.t = threading.Thread (target = client.run, args=(self.conf ["token"],), kwargs={"log_handler": None})
+        self.t.daemon = True
         self.t.start ()
 
         #Wait for ready
@@ -149,3 +150,10 @@ class Discord:
         self.fat [new] = self.fat.pop (old)
         with open ("fat", "w") as f:
             json.dump (self.fat, f)
+
+    #Shut down bot, exit
+    def exit (self):
+        self.e.clear ()
+        self.sq.put ({"task": "exit"})
+        self.e.wait ()
+        self.t.join ()
