@@ -54,7 +54,7 @@ class Bot (discord.Client):
     #Function to upload message with file attached
     async def upload (self, name):
         with open (self.temp + name, "rb") as f:
-            msg = await self.channel.send (content="File upload", file=discord.File (f))
+            msg = await self.channel.send (content="File upload", file=discord.File (f, filename = name))
         return msg.id
 
     #Function to delete message
@@ -68,12 +68,22 @@ class Discord:
         self.temp = temp
 
         #Load config file
-        with open ("config", "r") as f:
-            self.conf = json.load (f)
+        if os.path.exists ("config"):
+            with open ("config", "r") as f:
+                self.conf = json.load (f)
+        else:
+            with open ("config", "w") as f:
+                self.conf = {"token": "BOT TOKEN", "channel": 0}
+                json.dump (self.conf, f)
+                print ("Fill in newly created config file with bot token and filesystem channel ID.")
+                exit ()
 
         #Load FAT file
-        with open ("fat", "r") as f:
-            self.fat = json.load (f)
+        if os.path.exists ("fat"):
+            with open ("fat", "r") as f:
+                self.fat = json.load (f)
+        else:
+            self.fat = {}
 
         #Setup bot
         client = Bot (intents = discord.Intents.default ())
