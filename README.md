@@ -46,6 +46,7 @@ Updated versions of this program will be released continuously, and there is no 
 
 ## Legal
 Copyright (C) 2024 Simon Bryntse
+
 License (GPL 3.0) provided in file `LICENSE`
 
 This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
