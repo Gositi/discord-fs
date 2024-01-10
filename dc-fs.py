@@ -15,6 +15,7 @@ def main():
     #Spin up system
     discord = dc.Discord (temp)
     fuse.FUSE(fs.Filesystem(discord, temp), mount, nothreads=True, foreground=True, allow_other=False)
+    #Gracefully shut down after unmount
     discord.exit ()
 
 if __name__ == '__main__':

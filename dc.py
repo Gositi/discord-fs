@@ -44,7 +44,6 @@ class Bot (discord.Client):
 
         #Shutdown
         self.e.set ()
-        await self.close ()
 
     #Function to download attached file to a certain message
     async def download (self, msgID, name):
@@ -91,12 +90,12 @@ class Discord:
         self.rq = queue.Queue ()
         self.e = threading.Event ()
         client.stp (self.conf ["channel"], self.sq, self.rq, self.e, temp)
-        self.t = threading.Thread (target = client.run, args=(self.conf ["token"],), kwargs={"log_handler": None})
+        self.t = threading.Thread (target = client.run, args=(self.conf ["token"],), kwargs={})#"log_handler": None})
         self.t.daemon = True
         self.t.start ()
 
         #Wait for ready
-        self.rq.get ()
+        print (self.rq.get ())
 
     #Provide list of files available
     def readdir (self, path):
@@ -106,6 +105,7 @@ class Discord:
     #Remove source file
     def remove (self, path):
         self.e.clear ()
+        E
         self.sq.put ({"task": "delete", "id": self.fat [path]})
         self.e.wait ()
         self.fat.pop (path)
@@ -166,4 +166,3 @@ class Discord:
         self.e.clear ()
         self.sq.put ({"task": "exit"})
         self.e.wait ()
-        self.t.join ()
