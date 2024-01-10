@@ -1,5 +1,6 @@
 # discord-fs
 An attempt at using Discord as a filesystem, using FUSE.
+Version 0.9.0.
 
 This is a simple working implementation, lacking much functionality (such as subdirectories or large files).
 
@@ -17,8 +18,7 @@ If any of this is an issue for you (and you can't Google your way to it), this i
 
 ## TODO, plans and ideas
 ### TODO
-- Tidy up the code, improve documentation/comments
-- Prepare project for going public
+- [WIP] Prepare project for going public
 - Rethink FAT to enable implementation of some of the ideas/plans
 
 ### Plans
