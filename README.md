@@ -12,7 +12,7 @@ I will assume you are techy enough to do this yourself, so this will be in broad
 - Import libraries in `requirements.txt`
 
 After this is done you should be good to go.
-The FS is started by executing `dc-fs.py`.
+The FS is started by executing `dc-fs.py`, and closing it is done by unmounting the filesystem.
 
 If any of this is an issue for you (and you can't Google your way to it), this is too much of a hack and you shouldn't use it.
 
