@@ -13,7 +13,7 @@ import time
 
 #Class for the actual bot, made to be run in a separate process
 class Bot (discord.Client):
-    #Basic setup
+    #Basic setup (passing arguments to bot)
     def stp (self, channelID, sq, rq, e, temp):
         self.channelID = channelID
         self.sq = sq
@@ -23,12 +23,14 @@ class Bot (discord.Client):
 
     #Main thread function, handling up- and download of files
     async def on_ready (self):
+        #Prepare
         self.channel = self.get_channel (self.channelID)
         self.rq.put ("Ready.")
         task = {"task": None}
 
+        #Main loop
         while task ["task"] != "exit":
-            #Handle task
+            #Handle tasks
             if task ["task"] == "download":
                 await self.download (task ["id"], task ["name"])
             elif task ["task"] == "upload":
@@ -42,13 +44,16 @@ class Bot (discord.Client):
             self.e.set ()
             task = self.sq.get ()
 
-        #Shutdown
+        #Signal bot ready for shutdown
         self.e.set ()
 
     #Function to download attached file to a certain message
     async def download (self, msgID, name):
-        msg = await self.channel.fetch_message (msgID)
-        await msg.attachments [0].save (fp = self.temp + name)
+        try:
+            msg = await self.channel.fetch_message (msgID)
+            await msg.attachments [0].save (fp = self.temp + name)
+        except discord.error.NotFound:
+            return #TODO This should be handled much more gracefully!
 
     #Function to upload message with file attached
     async def upload (self, name):
@@ -58,10 +63,13 @@ class Bot (discord.Client):
 
     #Function to delete message
     async def delete (self, msgID):
-        msg = await self.channel.fetch_message (msgID)
-        await msg.delete ()
+        try:
+            msg = await self.channel.fetch_message (msgID)
+            await msg.delete ()
+        except discord.error.NotFound:
+            return
 
-#Simulates a Discord connection, by implementing a lot of basic filesystem functionality
+#Layer between Filesystem (fs.py) and Bot, handling the actual communications with the bot
 class Discord:
     def __init__(self, temp):
         self.temp = temp
@@ -90,24 +98,25 @@ class Discord:
         self.rq = queue.Queue ()
         self.e = threading.Event ()
         client.stp (self.conf ["channel"], self.sq, self.rq, self.e, temp)
-        self.t = threading.Thread (target = client.run, args=(self.conf ["token"],), kwargs={})#"log_handler": None})
+        self.t = threading.Thread (target = client.run, args=(self.conf ["token"],), kwargs={"log_handler": None})
         self.t.daemon = True
         self.t.start ()
 
         #Wait for ready
         print (self.rq.get ())
 
-    #Provide list of files available
+    #Provide list of available files
     def readdir (self, path):
         for key in self.fat.keys ():
-            yield key [1:]
+            yield key [1:] #Removes "/" before filename
 
-    #Remove source file
+    #Remove file
     def remove (self, path):
+        #Remove file at Discord
         self.e.clear ()
-        E
         self.sq.put ({"task": "delete", "id": self.fat [path]})
         self.e.wait ()
+        #Update FAT
         self.fat.pop (path)
         with open ("fat", "w") as f:
             json.dump (self.fat, f)
@@ -130,8 +139,8 @@ class Discord:
         self.e.clear ()
         self.sq.put ({"task": "upload", "name": path})
         self.e.wait ()
+        #Update FAT
         self.fat [path] = self.rq.get ()
-        #Write new FAT
         with open ("fat", "w") as f:
             json.dump (self.fat, f)
 
@@ -146,14 +155,14 @@ class Discord:
         self.e.clear ()
         self.sq.put ({"task": "upload", "name": path})
         self.e.wait ()
+        #Update FAT
         self.fat [path] = self.rq.get ()
-        #Write new FAT
         with open ("fat", "w") as f:
             json.dump (self.fat, f)
 
     #Check for the existence of a specific file
     def exists (self, path):
-        return (path in self.fat.keys ()) or (path == "/")
+        return path in self.fat.keys ()
 
     #Rename a file
     def rename (self, old, new):

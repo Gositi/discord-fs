@@ -20,12 +20,12 @@ class Filesystem (fuse.Operations):
  
     #Get basic file attributes
     def getattr (self, path, fh=None):
-        if not self.dc.exists (path):
-            raise OSError (errno.ENOENT, "File does not exist") #Makes filesystem well-behaved
-        elif path != "/":
-            return {'st_atime': 0.0, 'st_ctime': 0.0, 'st_gid': 1000, 'st_mode': 33204, 'st_mtime': 0.0, 'st_nlink': 1, 'st_size': 25000000, 'st_uid': 1000}
-        else:
+        if path == "/":
             return {'st_atime': 0.0, 'st_ctime': 0.0, 'st_gid': 1000, 'st_mode': 16877, 'st_mtime': 0.0, 'st_nlink': 1, 'st_size': 0, 'st_uid': 1000}
+        elif not self.dc.exists (path):
+            raise OSError (errno.ENOENT, "File does not exist") #Tells programs that the file doesn't exist
+        else:
+            return {'st_atime': 0.0, 'st_ctime': 0.0, 'st_gid': 1000, 'st_mode': 33204, 'st_mtime': 0.0, 'st_nlink': 1, 'st_size': 25000000, 'st_uid': 1000}
 
     #Get directory listing
     def readdir (self, path, fh):
