@@ -9,6 +9,11 @@ This is a hobby project of mine, forks and pull requests are welcome!
 If anything breaks, please tell me in an Issue so I can fix it.
 
 ## Usage
+First off, you'll need Linux to run this (with FUSE and a modern version of Python installed, should already be installed by default on most distros).
+If you have macOS, I think there is a way to get FUSE working there too which should enable you to run this project.
+For Windows, https://github.com/DiscordFS/DiscordFS looks relevant but I'm not affiliated with it in any way.
+This project will only ever officially support Linux, and all testing is done on the latest Ubuntu.
+
 Before using the FS, you'll need to fix some setup.
 I will assume you are techy enough to do this yourself, so this will be in broad terms what to do.
 - Create (or use) a discord bot for the FS
