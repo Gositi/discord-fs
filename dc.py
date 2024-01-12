@@ -25,7 +25,7 @@ class Bot (discord.Client):
     async def on_ready (self):
         #Prepare
         self.channel = self.get_channel (self.channelID)
-        self.rq.put ("Ready.")
+        self.rq.put ("Bot ready.")
         task = {"task": None}
 
         #Main loop
@@ -71,23 +71,13 @@ class Bot (discord.Client):
 
 #Layer between Filesystem (fs.py) and Bot, handling the actual communications with the bot
 class Discord:
-    def __init__(self, temp):
+    def __init__(self, temp, channel, token, fatfile):
         self.temp = temp
-
-        #Load config file
-        if os.path.exists ("config"):
-            with open ("config", "r") as f:
-                self.conf = json.load (f)
-        else:
-            with open ("config", "w") as f:
-                self.conf = {"token": "BOT TOKEN", "channel": 0}
-                json.dump (self.conf, f)
-                print ("Fill in newly created config file with bot token and filesystem channel ID.")
-                exit ()
+        self.fatfile = fatfile
 
         #Load FAT file
-        if os.path.exists ("fat"):
-            with open ("fat", "r") as f:
+        if os.path.exists (self.fatfile):
+            with open (self.fatfile, "r") as f:
                 self.fat = json.load (f)
         else:
             self.fat = {}
@@ -97,13 +87,18 @@ class Discord:
         self.sq = queue.Queue ()
         self.rq = queue.Queue ()
         self.e = threading.Event ()
-        client.stp (self.conf ["channel"], self.sq, self.rq, self.e, temp)
-        self.t = threading.Thread (target = client.run, args=(self.conf ["token"],), kwargs={"log_handler": None})
+        client.stp (channel, self.sq, self.rq, self.e, temp)
+        self.t = threading.Thread (target = client.run, args=(token,), kwargs={"log_handler": None})
         self.t.daemon = True
         self.t.start ()
 
         #Wait for ready
         print (self.rq.get ())
+
+    #Write to FAT file
+    def writefat (self):
+        with open (self.fatfile, "w") as f:
+            json.dump (self.fat, f)
 
     #Provide list of available files
     def readdir (self, path):
@@ -118,8 +113,7 @@ class Discord:
         self.e.wait ()
         #Update FAT
         self.fat.pop (path)
-        with open ("fat", "w") as f:
-            json.dump (self.fat, f)
+        self.writefat ()
 
     #Make file available to temp
     def open (self, path):
@@ -141,8 +135,7 @@ class Discord:
         self.e.wait ()
         #Update FAT
         self.fat [path] = self.rq.get ()
-        with open ("fat", "w") as f:
-            json.dump (self.fat, f)
+        self.writefat ()
 
     #Make sure a certain file in temp also exists at source
     def sync (self, path):
@@ -157,8 +150,7 @@ class Discord:
         self.e.wait ()
         #Update FAT
         self.fat [path] = self.rq.get ()
-        with open ("fat", "w") as f:
-            json.dump (self.fat, f)
+        self.writefat ()
 
     #Check for the existence of a specific file
     def exists (self, path):
@@ -167,8 +159,7 @@ class Discord:
     #Rename a file
     def rename (self, old, new):
         self.fat [new] = self.fat.pop (old)
-        with open ("fat", "w") as f:
-            json.dump (self.fat, f)
+        self.writefat ()
 
     #Shut down bot, exit
     def exit (self):

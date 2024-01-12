@@ -17,6 +17,7 @@ class Filesystem (fuse.Operations):
         self.dc = dc
         self.temp = temp
         self.list = {}
+        print ("FS ready.")
  
     #Get basic file attributes
     def getattr (self, path, fh=None):
