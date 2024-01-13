@@ -2,10 +2,10 @@
 Discord as a filesystem.
 Version `1.0.2-pre-release`.
 
-This is a simple, feature-sparse implementation of a program allowing you to use Discord as your free, unlimited cloud-storage.
+This is a simple, feature-sparse (for now) implementation of a program allowing you to use Discord as your free, unlimited cloud-storage.
 You assign a channel, mount the filesystem and let the bot do the rest.
 
-This is a hobby project of mine, forks and pull requests are welcome!
+This is a hobby project of mine, forks and pull requests are welcome (following the roadmap below or not)!
 If anything breaks, please tell me in an Issue so I can fix it.
 
 ## Usage
@@ -46,17 +46,26 @@ The data (in order) is the following:
 
 ## Roadmap
 Updated versions of this program will be released continuously, and there is no guarantee that new versions won't break data stored in older versions.
+Below is how I currently plan on going forward with the project.
 
-### TODO (for this release)
+### Next patch release (patch branch)
+- Simplify config handling - this is too complex and unneccessary
 - Fix bugs as they appear
 
-### Plans (for next release)
-- Handle larger files by splitting them
+### Next minor release (dev branch)
+- Handle larger files by splitting them (in the same message)
 - Store more file information (mode, etc.) in FAT
 
-### Ideas (for future releases)
+### Next major release (next branch)
+- Rethink handling of FAT/config
+- Unlimited file size by splitting into multiple messages
 - Implement directories
+- More advanced loading of FAT/config
+
+### Ideas for future
 - Store FAT at Discord, only saving its location locally
+- Multiple clients connected to the same filesystem
+- Asynchronized file up- and downloads
 
 ## Legal
 Copyright (C) 2024 Simon Bryntse
