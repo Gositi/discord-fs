@@ -17,14 +17,15 @@ def main():
         with open ("config.json", "r") as f:
             conf = json.load (f)
         #Read directory paths from config file
+        channel = conf ["channel"]
+        token = conf ["token"]
         mount = conf ["mount"]
-        fat = conf ["fat"]
     else:
         #Write file with defaults
         with open ("config.json", "w") as f:
-            conf = {"token": "BOT TOKEN", "channel": 0, "mount": "./mnt/", "fat": "./fat.json"}
+            conf = {"token": "BOT TOKEN", "channel": 0, "mount": "./mnt/"}
             json.dump (conf, f)
-            print ("Fill in newly created config file with bot token, filesystem channel ID and directory paths for filesystem.")
+            print ("Fill in newly created config file with bot token, filesystem channel ID and mount directory path.")
             print ("See documentation (README.md) for more details.")
             exit ()
 
@@ -32,13 +33,12 @@ def main():
     args = sys.argv
     if len (args) >= 2:
         mount = args [1]
-    if len (args) == 3:
-        fat = args [2]
 
     #Validate/fix directory paths
     if not os.path.isdir (mount):
-        raise NotADirectoryError ("Specified mount directory does not exist.")
-    elif mount [-1] != "/":
+        print ("Specified mount directory does not exist, attempting creating it.")
+        os.mkdir (mount)
+    if mount [-1] != "/":
         mount += "/"
 
     #Create temp dir
@@ -49,7 +49,7 @@ def main():
         os.mkdir (temp)
 
     #Spin up system
-    discord = dc.Discord (temp, conf ["channel"], conf ["token"], fat)
+    discord = dc.Discord (temp, channel, token, "./fat.json")
     fuse.FUSE(fs.Filesystem(discord, temp), mount, nothreads=True, foreground=True, allow_other=False)
 
     #Gracefully shut down after unmount
