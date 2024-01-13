@@ -1,6 +1,6 @@
 # discord-fs
 Discord as a filesystem.
-Version `1.0.1`.
+Version `1.0.2-pre-release`.
 
 This is a simple, feature-sparse implementation of a program allowing you to use Discord as your free, unlimited cloud-storage.
 You assign a channel, mount the filesystem and let the bot do the rest.
