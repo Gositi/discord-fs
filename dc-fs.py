@@ -26,7 +26,7 @@ def main():
             json.dump (conf, f)
             print ("Fill in newly created config file with bot token, filesystem channel ID and directory paths for filesystem.")
             print ("See documentation (README.md) for more details.")
-            exit (0)
+            exit ()
 
     #Read directory paths from CLI
     args = sys.argv
@@ -37,16 +37,14 @@ def main():
 
     #Validate/fix directory paths
     if not os.path.isdir (mount):
-        print ("Specified mount directory does not exist.")
-        exit (1)
+        raise NotADirectoryError ("Specified mount directory does not exist.")
     elif mount [-1] != "/":
         mount += "/"
 
     #Create temp dir
     temp = "./.tmp/"
     if os.path.isdir (temp):
-        print ("Tempdir (" + temp + ") already exists, remove it and run the program again.")
-        exit (1)
+        raise IsADirectoryError ("Tempdir (" + temp + ") already exists, remove it and run the program again.")
     else:
         os.mkdir (temp)
 
@@ -59,7 +57,8 @@ def main():
     try:
         os.rmdir ("./.tmp/")
     except:
-        print ("Could not remove tempdir (.tmp), please remove it manually.")
+        print ("Could not remove tempdir (" + temp + "), possibly because it contains trace files. Please remove it manually.")
+    print ("Exit (unmount)")
 
 if __name__ == '__main__':
     main()

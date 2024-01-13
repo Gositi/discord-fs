@@ -24,7 +24,11 @@ class Bot (discord.Client):
     #Main thread function, handling up- and download of files
     async def on_ready (self):
         #Prepare
-        self.channel = self.get_channel (self.channelID)
+        try:
+            self.channel = self.get_channel (self.channelID)
+        except discord.error.NotFound:
+            print ("The filesystem channel does not exist. Make sure that the config file is properly filled with data.")
+            return
         self.rq.put ("Bot ready.")
         task = {"task": None}
 
@@ -53,7 +57,8 @@ class Bot (discord.Client):
             msg = await self.channel.fetch_message (msgID)
             await msg.attachments [0].save (fp = self.temp + name)
         except discord.error.NotFound:
-            return #TODO This should be handled much more gracefully!
+            print ("The message requested does not exist and an error will occur because of this. This is an unreachable state and will thus not be handled any further.")
+            return
 
     #Function to upload message with file attached
     async def upload (self, name):
@@ -67,7 +72,7 @@ class Bot (discord.Client):
             msg = await self.channel.fetch_message (msgID)
             await msg.delete ()
         except discord.error.NotFound:
-            return
+            return #Message already doesn't exist - weird, but that is what we want to achieve here anyways
 
 #Layer between Filesystem (fs.py) and Bot, handling the actual communications with the bot
 class Discord:
@@ -93,7 +98,7 @@ class Discord:
         self.t.start ()
 
         #Wait for ready
-        print (self.rq.get ())
+        print (self.rq.get (timeout = 10))
 
     #Write to FAT file
     def writefat (self):

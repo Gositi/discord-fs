@@ -48,7 +48,6 @@ The data (in order) is the following:
 Updated versions of this program will be released continuously, and there is no guarantee that new versions won't break data stored in older versions.
 
 ### TODO (for this release)
-- Add more useful error messages/exceptions
 - Fix bugs as they appear
 
 ### Plans (for next release)
