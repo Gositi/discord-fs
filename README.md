@@ -1,6 +1,6 @@
 # discord-fs
 Discord as a filesystem.
-Version `1.0.1`.
+Version `1.0.2`.
 
 This is a simple, feature-sparse (for now) implementation of a program allowing you to use Discord as your free, unlimited cloud-storage.
 You assign a channel, mount the filesystem and let the bot do the rest.
@@ -23,8 +23,7 @@ I will assume you are techy enough to do this yourself, so this will be in broad
 
 After this is done you should be good to go.
 The FS is started by executing `dc-fs.py`, and closing it is done by unmounting the filesystem.
-You can optionally specify another mountpoint as a command-line argument, and if you do you can also specify another FAT file.
-Otherwise the default mountpoint and FAT file specified in `config.json` will be used.
+You can optionally specify another mountpoint as a command-line argument, otherwise the default mountpoint specified in `config.json` will be used.
 
 If any of this is an issue for you (and you can't Google your way to it), you shouldn't use it.
 This project is still in a too early development stage for me to recommend it for people not familiar with Python or Discord bots.
@@ -53,7 +52,6 @@ Be sure to read the release notes for any release though, because _if_ something
 Below is how I currently plan on going forward with the project.
 
 ### Next patch release (patch branch)
-- Simplify config handling - this is too complex and unneccessary
 - Fix bugs as they appear
 
 ### Next minor release (dev branch)
