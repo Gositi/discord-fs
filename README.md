@@ -11,8 +11,9 @@ If anything breaks, please tell me in an Issue so I can fix it.
 ## Usage
 First off, you'll need Linux to run this (with FUSE and a modern version of Python installed, should already be installed by default on most distros).
 If you have macOS, I think there is a way to get FUSE working there too which should enable you to run this project.
-For Windows, https://github.com/DiscordFS/DiscordFS looks relevant but I'm not affiliated with it in any way.
-This project will only ever officially support Linux, and all testing is done on the latest Ubuntu.
+For Windows, this project won't support it as it is a too different platform.
+However, https://github.com/DiscordFS/DiscordFS looks relevant (but I'm not affiliated with it in any way).
+This project will only ever officially support Linux, and all testing is done on the latest Ubuntu (23.10).
 
 Before using the FS, you'll need to fix some setup.
 I will assume you are techy enough to do this yourself, so this will be in broad terms what to do.
@@ -24,7 +25,8 @@ After this is done you should be good to go.
 The FS is started by executing `dc-fs.py`, and closing it is done by unmounting the filesystem.
 You can optionally specify another mountpoint as a command-line argument, otherwise the default mountpoint specified in `config.json` will be used.
 
-If any of this is an issue for you (and you can't Google your way to it), this is too much of a hack and you shouldn't use it.
+If any of this is an issue for you (and you can't Google your way to it), you shouldn't use it.
+This project is still in a too early development stage for me to recommend it for people not familiar with Python or Discord bots.
 
 ### Config file
 Most data required by the program at runtime is stored as JSON in the file `config.json`.
@@ -45,6 +47,8 @@ The data (in order) is the following:
 
 ## Roadmap
 Updated versions of this program will be released continuously, and there is no guarantee that new versions won't break data stored in older versions.
+I will try and keep to semantic versioning though, so patch releases _should_ generally be safe.
+Be sure to read the release notes for any release though, because _if_ something breaks (and I'm aware) it will be noted there.
 Below is how I currently plan on going forward with the project.
 
 ### Next patch release (patch branch)
@@ -58,7 +62,6 @@ Below is how I currently plan on going forward with the project.
 - Rethink handling of FAT/config
 - Unlimited file size by splitting into multiple messages
 - Implement directories
-- More advanced loading of FAT/config
 
 ### Ideas for future
 - Store FAT at Discord, only saving its location locally
