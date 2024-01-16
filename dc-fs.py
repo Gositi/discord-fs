@@ -41,23 +41,23 @@ def main():
     if mount [-1] != "/":
         mount += "/"
 
-    #Create temp dir
-    temp = "./.tmp/"
-    if os.path.isdir (temp):
-        raise IsADirectoryError ("Tempdir (" + temp + ") already exists, remove it and run the program again.")
+    #Create cache dir
+    cache = "./.dcfscache/"
+    if os.path.isdir (cache):
+        raise IsADirectoryError ("Tempdir (" + cache + ") already exists, remove it and run the program again.")
     else:
-        os.mkdir (temp)
+        os.mkdir (cache)
 
     #Spin up system
-    discord = dc.Discord (temp, channel, token, "./fat.json")
-    fuse.FUSE(fs.Filesystem(discord, temp), mount, nothreads=True, foreground=True, allow_other=False)
+    discord = dc.Discord (cache, channel, token, "./fat.json")
+    fuse.FUSE(fs.Filesystem(discord, cache), mount, nothreads=True, foreground=True, allow_other=False)
 
     #Gracefully shut down after unmount
     discord.exit ()
     try:
         os.rmdir ("./.tmp/")
     except:
-        print ("Could not remove tempdir (" + temp + "), possibly because it contains trace files. Please remove it manually.")
+        print ("Could not remove cachedir (" + cache + "), possibly because it contains trace files. Please remove it manually.")
     print ("Exit (unmount)")
 
 if __name__ == '__main__':

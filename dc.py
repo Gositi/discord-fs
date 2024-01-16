@@ -14,12 +14,12 @@ import time
 #Class for the actual bot, made to be run in a separate process
 class Bot (discord.Client):
     #Basic setup (passing arguments to bot)
-    def stp (self, channelID, sq, rq, e, temp):
+    def stp (self, channelID, sq, rq, e, cache):
         self.channelID = channelID
         self.sq = sq
         self.rq = rq
         self.e = e
-        self.temp = temp
+        self.cache = cache
 
     #Main thread function, handling up- and download of files
     async def on_ready (self):
@@ -55,14 +55,14 @@ class Bot (discord.Client):
     async def download (self, msgID, name):
         try:
             msg = await self.channel.fetch_message (msgID)
-            await msg.attachments [0].save (fp = self.temp + name)
+            await msg.attachments [0].save (fp = self.cache + name)
         except discord.error.NotFound:
             print ("The message requested does not exist and an error will occur because of this. This is an unreachable state and will thus not be handled any further.")
             return
 
     #Function to upload message with file attached
     async def upload (self, name):
-        with open (self.temp + name, "rb") as f:
+        with open (self.cache + name, "rb") as f:
             msg = await self.channel.send (content="File upload", file=discord.File (f, filename = name))
         return msg.id
 
@@ -76,8 +76,8 @@ class Bot (discord.Client):
 
 #Layer between Filesystem (fs.py) and Bot, handling the actual communications with the bot
 class Discord:
-    def __init__(self, temp, channel, token, fatfile):
-        self.temp = temp
+    def __init__(self, cache, channel, token, fatfile):
+        self.cache = cache
         self.fatfile = fatfile
 
         #Load FAT file
@@ -92,7 +92,7 @@ class Discord:
         self.sq = queue.Queue ()
         self.rq = queue.Queue ()
         self.e = threading.Event ()
-        client.stp (channel, self.sq, self.rq, self.e, temp)
+        client.stp (channel, self.sq, self.rq, self.e, cache)
         self.t = threading.Thread (target = client.run, args=(token,), kwargs={"log_handler": None})
         self.t.daemon = True
         self.t.start ()
@@ -120,15 +120,15 @@ class Discord:
         self.fat.pop (path)
         self.writefat ()
 
-    #Make file available to temp
+    #Make file available to cache
     def open (self, path):
-        if not os.path.exists (self.temp + path):
+        if not os.path.exists (self.cache + path):
             if path in self.fat.keys ():
                 self.e.clear ()
                 self.sq.put ({"task": "download", "id": self.fat [path], "name": path})
                 self.e.wait ()
 
-    #Remove file from temp
+    #Remove file from cache
     def close (self, path):
         #Remove old file
         self.e.clear ()
@@ -142,7 +142,7 @@ class Discord:
         self.fat [path] = self.rq.get ()
         self.writefat ()
 
-    #Make sure a certain file in temp also exists at source
+    #Make sure a certain file in cache also exists at source
     def sync (self, path):
         #Remove old file, if it exists
         if path in self.fat.keys ():

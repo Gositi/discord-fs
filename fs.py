@@ -13,9 +13,9 @@ import errno
 import fuse
 
 class Filesystem (fuse.Operations):
-    def __init__ (self, dc, temp):
+    def __init__ (self, dc, cache):
         self.dc = dc
-        self.temp = temp
+        self.cache = cache
         self.list = {}
         print ("FS ready.")
  
@@ -39,8 +39,8 @@ class Filesystem (fuse.Operations):
     def unlink (self, path):
         print ("rm")
         self.dc.remove (path)
-        if os.path.exists (self.temp + path):
-            os.unlink (self.temp + path)
+        if os.path.exists (self.cache + path):
+            os.unlink (self.cache + path)
 
     #Opening of file
     def open (self, path, flags):
@@ -49,7 +49,7 @@ class Filesystem (fuse.Operations):
         if not path in self.list.keys ():
             self.list [path] = 0
         self.list [path] += 1
-        return os.open (self.temp + path, flags)
+        return os.open (self.cache + path, flags)
     
     #Write buffered file contents to the actual file
     def flush (self, path, fh):
@@ -64,11 +64,11 @@ class Filesystem (fuse.Operations):
         #Close file
         ret = os.close (fh)
         self.list [path] -= 1
-        #Remove file from temp if it isn't used anymore
+        #Remove file from cache if it isn't used anymore
         if self.list [path] <= 0:
             self.list.pop (path)
             self.dc.close (path)
-            os.unlink (self.temp + path)
+            os.unlink (self.cache + path)
         return ret
 
     #Read data from file
@@ -86,10 +86,10 @@ class Filesystem (fuse.Operations):
     #Needed to create file
     def create (self, path, mode, fi=None):
         print ("cr")
-        #Create file in temp
+        #Create file in cache
         uid, gid, pid = fuse.fuse_get_context ()
-        fd = os.open (self.temp + path, os.O_WRONLY | os.O_CREAT, mode)
-        os.chown (self.temp + path, uid, gid) #chown to context uid & gid
+        fd = os.open (self.cache + path, os.O_WRONLY | os.O_CREAT, mode)
+        os.chown (self.cache + path, uid, gid) #chown to context uid & gid
         #Sync file to source
         self.dc.sync (path)
         #Add file to list
@@ -99,9 +99,9 @@ class Filesystem (fuse.Operations):
     #Rename file
     def rename (self, old, new):
         print ("mv")
-        #Rename in temp
-        if os.path.exists (self.temp + old):
-            os.rename (self.temp + old, self.temp + new)
+        #Rename in cache
+        if os.path.exists (self.cache + old):
+            os.rename (self.cache + old, self.cache + new)
         #Rename at source
         self.dc.rename (old, new)
         #Make change in list of open files
