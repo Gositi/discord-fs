@@ -14,12 +14,13 @@ import time
 #Class for the actual bot, made to be run in a separate process
 class Bot (discord.Client):
     #Basic setup (passing arguments to bot)
-    def stp (self, channelID, sq, rq, e, cache):
+    def stp (self, channelID, sq, rq, e, cache, temp):
         self.channelID = channelID
         self.sq = sq
         self.rq = rq
         self.e = e
         self.cache = cache
+        self.temp = temp
 
     #Main thread function, handling up- and download of files
     async def on_ready (self):
@@ -60,11 +61,15 @@ class Bot (discord.Client):
             print ("The message requested does not exist and an error will occur because of this. This is an unreachable state and will thus not be handled any further.")
             return
 
+    #TODO Join splitted files, download partial files
+
     #Function to upload message with file attached
     async def upload (self, name):
         with open (self.cache + name, "rb") as f:
             msg = await self.channel.send (content="File upload", file=discord.File (f, filename = name))
         return msg.id
+    
+    #TODO Split file, upload partial files
 
     #Function to delete message
     async def delete (self, msgID):
@@ -76,7 +81,8 @@ class Bot (discord.Client):
 
 #Layer between Filesystem (fs.py) and Bot, handling the actual communications with the bot
 class Discord:
-    def __init__(self, cache, channel, token, fatfile):
+    def __init__(self, temp, cache, channel, token, fatfile):
+        self.temp = temp
         self.cache = cache
         self.fatfile = fatfile
 
@@ -92,7 +98,7 @@ class Discord:
         self.sq = queue.Queue ()
         self.rq = queue.Queue ()
         self.e = threading.Event ()
-        client.stp (channel, self.sq, self.rq, self.e, cache)
+        client.stp (channel, self.sq, self.rq, self.e, cache, temp)
         self.t = threading.Thread (target = client.run, args=(token,), kwargs={"log_handler": None})
         self.t.daemon = True
         self.t.start ()

@@ -44,20 +44,35 @@ def main():
     #Create cache dir
     cache = "./.dcfscache/"
     if os.path.isdir (cache):
-        raise IsADirectoryError ("Tempdir (" + cache + ") already exists, remove it and run the program again.")
+        raise IsADirectoryError ("Cachedir (" + cache + ") already exists, remove it and run the program again.")
     else:
         os.mkdir (cache)
 
+    #Create temp dir
+    temp = "./.dcfstmp/"
+    if os.path.isdir (temp):
+        os.rmdir (cache)
+        raise IsADirectoryError ("Tempdir (" + temp + ") already exists, remove it and run the program again.")
+    else:
+        os.mkdir (temp)
+
     #Spin up system
-    discord = dc.Discord (cache, channel, token, "./fat.json")
+    discord = dc.Discord (temp, cache, channel, token, "./fat.json")
     fuse.FUSE(fs.Filesystem(discord, cache), mount, nothreads=True, foreground=True, allow_other=False)
 
     #Gracefully shut down after unmount
     discord.exit ()
+
     try:
-        os.rmdir ("./.tmp/")
+        os.rmdir (cache)
     except:
         print ("Could not remove cachedir (" + cache + "), possibly because it contains trace files. Please remove it manually.")
+
+    try:
+        os.rmdir (temp)
+    except:
+        print ("Could not remove tempdir (" + temp + "), possibly because it contains trace files. Please remove it manually.")
+
     print ("Exit (unmount)")
 
 if __name__ == '__main__':
