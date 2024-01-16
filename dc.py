@@ -55,28 +55,53 @@ class Bot (discord.Client):
     #Function to download attached file to a certain message
     async def download (self, msgID, name):
         try:
+            #Download files
             msg = await self.channel.fetch_message (msgID)
-            await msg.attachments [0].save (fp = self.cache + name)
-        except discord.error.NotFound:
-            print ("The message requested does not exist and an error will occur because of this. This is an unreachable state and will thus not be handled any further.")
-            return
+            string = ""
+            for i, attach in enumerate (msg.attachments):
+                await attach.save (fp = self.temp + name + str (i))
+                string += " " + self.temp + name + str (i)
 
-    #TODO Join splitted files, download partial files
+            #Join files
+            os.system ("cat" + string + " > " + self.cache + name)
+            os.system ("rm" + string)
+
+        except:
+            print ("The message requested does not exist and an error will occur because of this. This is an unreachable state and will thus not be handled any further.")
 
     #Function to upload message with file attached
     async def upload (self, name):
-        with open (self.cache + name, "rb") as f:
-            msg = await self.channel.send (content="File upload", file=discord.File (f, filename = name))
+        #Split file
+        maxsize = 25000000
+        size = os.path.getsize (self.cache + name)
+        realNum = size // maxsize + 1
+        if size == 0:
+            #Special case of split, has to be handled separately
+            os.system ("cp " + self.cache + name + " " + self.temp + name + "0")
+        else:
+            os.system ("split -b " + str (maxsize) + " -a 1 -d " + self.cache + name + " " + self.temp + name)
+
+        #Upload files
+        files = [] 
+        num = min (10, realNum) #Screw it, cut off at max size and let the user cry
+        for i in range (0, num):
+            with open (self.temp + name + str (i), "rb") as f:
+                files.append (discord.File (f, filename = name + str (i)))
+        msg = await self.channel.send (content = "File upload", files = files)
+
+        #Remove trace files
+        for i in range (0, realNum):
+            os.system ("rm " + self.temp + name + str (i))
+
+        #Return
         return msg.id
-    
-    #TODO Split file, upload partial files
 
     #Function to delete message
     async def delete (self, msgID):
         try:
             msg = await self.channel.fetch_message (msgID)
             await msg.delete ()
-        except discord.error.NotFound:
+        except:
             return #Message already doesn't exist - weird, but that is what we want to achieve here anyways
 
 #Layer between Filesystem (fs.py) and Bot, handling the actual communications with the bot
@@ -99,7 +124,7 @@ class Discord:
         self.rq = queue.Queue ()
         self.e = threading.Event ()
         client.stp (channel, self.sq, self.rq, self.e, cache, temp)
-        self.t = threading.Thread (target = client.run, args=(token,), kwargs={"log_handler": None})
+        self.t = threading.Thread (target = client.run, args=(token,), kwargs={}) #"log_handler": None})
         self.t.daemon = True
         self.t.start ()
 
