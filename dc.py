@@ -14,11 +14,12 @@ import time
 #Class for the actual bot, made to be run in a separate process
 class Bot (discord.Client):
     #Basic setup (passing arguments to bot)
-    def stp (self, channelID, sq, rq, e, temp):
+    def stp (self, channelID, sq, rq, e, r, temp):
         self.channelID = channelID
         self.sq = sq
         self.rq = rq
         self.e = e
+        self.r = r
         self.temp = temp
 
     #Main thread function, handling up- and download of files
@@ -26,10 +27,10 @@ class Bot (discord.Client):
         #Prepare
         try:
             self.channel = self.get_channel (self.channelID)
-        except discord.error.NotFound:
-            print ("The filesystem channel does not exist. Make sure that the config file is properly filled with data.")
+        except discord.NotFound:
+            print ("The filesystem channel does not exist. Make sure that the config file has proper data.")
             return
-        self.rq.put ("Bot ready.")
+        self.r.set ()
         task = {"task": None}
 
         #Main loop
@@ -49,14 +50,14 @@ class Bot (discord.Client):
             task = self.sq.get ()
 
         #Signal bot ready for shutdown
-        self.e.set ()
+        self.r.set ()
 
     #Function to download attached file to a certain message
     async def download (self, msgID, name):
         try:
             msg = await self.channel.fetch_message (msgID)
             await msg.attachments [0].save (fp = self.temp + name)
-        except discord.error.NotFound:
+        except discord.NotFound:
             print ("The message requested does not exist and an error will occur because of this. This is an unreachable state and will thus not be handled any further.")
             return
 
@@ -71,7 +72,7 @@ class Bot (discord.Client):
         try:
             msg = await self.channel.fetch_message (msgID)
             await msg.delete ()
-        except discord.error.NotFound:
+        except discord.NotFound:
             return #Message already doesn't exist - weird, but that is what we want to achieve here anyways
 
 #Layer between Filesystem (fs.py) and Bot, handling the actual communications with the bot
@@ -92,13 +93,18 @@ class Discord:
         self.sq = queue.Queue ()
         self.rq = queue.Queue ()
         self.e = threading.Event ()
-        client.stp (channel, self.sq, self.rq, self.e, temp)
+        self.r = threading.Event ()
+        client.stp (channel, self.sq, self.rq, self.e, self.r, temp)
         self.t = threading.Thread (target = client.run, args=(token,), kwargs={"log_handler": None})
         self.t.daemon = True
+        self.r.clear ()
         self.t.start ()
 
         #Wait for ready
-        print (self.rq.get (timeout = 10))
+        if self.r.wait (timeout = 10):
+            print ("Bot ready.")
+        else:
+            raise Exception ("Discord bot did not start properly.")
 
     #Write to FAT file
     def writefat (self):
@@ -168,6 +174,6 @@ class Discord:
 
     #Shut down bot, exit
     def exit (self):
-        self.e.clear ()
+        self.r.clear ()
         self.sq.put ({"task": "exit"})
-        self.e.wait ()
+        self.r.wait ()
