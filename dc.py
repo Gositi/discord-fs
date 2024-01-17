@@ -14,12 +14,13 @@ import time
 #Class for the actual bot, made to be run in a separate process
 class Bot (discord.Client):
     #Basic setup (passing arguments to bot)
-    def stp (self, channelID, sq, rq, e, r, temp):
+    def stp (self, channelID, sq, rq, e, r, cache, temp):
         self.channelID = channelID
         self.sq = sq
         self.rq = rq
         self.e = e
         self.r = r
+        self.cache = cache
         self.temp = temp
 
     #Main thread function, handling up- and download of files
@@ -55,16 +56,45 @@ class Bot (discord.Client):
     #Function to download attached file to a certain message
     async def download (self, msgID, name):
         try:
+            #Download files
             msg = await self.channel.fetch_message (msgID)
-            await msg.attachments [0].save (fp = self.temp + name)
+            string = ""
+            for i, attach in enumerate (msg.attachments):
+                await attach.save (fp = self.temp + name + str (i))
+                string += " " + self.temp + name + str (i)
+
+            #Join files
+            os.system ("cat" + string + " > " + self.cache + name)
+            os.system ("rm" + string)
+
         except discord.NotFound:
             print ("The message requested does not exist and an error will occur because of this. This is an unreachable state and will thus not be handled any further.")
-            return
 
     #Function to upload message with file attached
     async def upload (self, name):
-        with open (self.temp + name, "rb") as f:
-            msg = await self.channel.send (content="File upload", file=discord.File (f, filename = name))
+        #Split file
+        maxsize = 25000000
+        size = os.path.getsize (self.cache + name)
+        realNum = size // maxsize + 1
+        if size == 0:
+            #Special case of split, has to be handled separately
+            os.system ("cp " + self.cache + name + " " + self.temp + name + "0")
+        else:
+            os.system ("split -b " + str (maxsize) + " -a 1 -d " + self.cache + name + " " + self.temp + name)
+
+        #Upload files
+        files = [] 
+        num = min (10, realNum) #Screw it, cut off at max size and let the user cry
+        for i in range (0, num):
+            with open (self.temp + name + str (i), "rb") as f:
+                files.append (discord.File (f, filename = name + str (i)))
+        msg = await self.channel.send (content = "File upload", files = files)
+
+        #Remove trace files
+        for i in range (0, realNum):
+            os.system ("rm " + self.temp + name + str (i))
+
+        #Return
         return msg.id
 
     #Function to delete message
@@ -77,8 +107,9 @@ class Bot (discord.Client):
 
 #Layer between Filesystem (fs.py) and Bot, handling the actual communications with the bot
 class Discord:
-    def __init__(self, temp, channel, token, fatfile):
+    def __init__(self, temp, cache, channel, token, fatfile):
         self.temp = temp
+        self.cache = cache
         self.fatfile = fatfile
 
         #Load FAT file
@@ -94,8 +125,8 @@ class Discord:
         self.rq = queue.Queue ()
         self.e = threading.Event ()
         self.r = threading.Event ()
-        client.stp (channel, self.sq, self.rq, self.e, self.r, temp)
-        self.t = threading.Thread (target = client.run, args=(token,), kwargs={"log_handler": None})
+        client.stp (channel, self.sq, self.rq, self.e, self.r, cache, temp)
+        self.t = threading.Thread (target = client.run, args=(token,), kwargs={}) #"log_handler": None})
         self.t.daemon = True
         self.r.clear ()
         self.t.start ()
@@ -126,15 +157,15 @@ class Discord:
         self.fat.pop (path)
         self.writefat ()
 
-    #Make file available to temp
+    #Make file available to cache
     def open (self, path):
-        if not os.path.exists (self.temp + path):
+        if not os.path.exists (self.cache + path):
             if path in self.fat.keys ():
                 self.e.clear ()
                 self.sq.put ({"task": "download", "id": self.fat [path], "name": path})
                 self.e.wait ()
 
-    #Remove file from temp
+    #Remove file from cache
     def close (self, path):
         #Remove old file
         self.e.clear ()
@@ -148,7 +179,7 @@ class Discord:
         self.fat [path] = self.rq.get ()
         self.writefat ()
 
-    #Make sure a certain file in temp also exists at source
+    #Make sure a certain file in cache also exists at source
     def sync (self, path):
         #Remove old file, if it exists
         if path in self.fat.keys ():
