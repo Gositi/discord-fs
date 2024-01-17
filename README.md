@@ -45,6 +45,20 @@ The data (in order) is the following:
 - Files are readable and downloadable by anyone with access to the filesystem channel
 - FAT stored locally, two clients cannot operate on the same filesystem
 
+## Bugs
+Here is a list of all known bugs, prioritized in functionality impact.
+
+### Critical
+These bugs will be fixed in the next patch release.
+- Opening existing files to write fails with errno 30 (read-only filesystem)
+
+### Important
+These bugs will either be fixed in the next patch release or minor release.
+- Uploading to Discord when the bot reloads can result in a corrupted FAT
+
+### Other
+These bugs will be fixed whenever there is time, but most likely in a future minor release.
+
 ## Roadmap
 Updated versions of this program will be released continuously, and there is no guarantee that new versions won't break data stored in older versions.
 I will try and keep to semantic versioning though, so patch releases _should_ generally be safe.
@@ -52,6 +66,7 @@ Be sure to read the release notes for any release though, because _if_ something
 Below is how I currently plan on going forward with the project.
 
 ### Next patch release (patch branch)
+- Figure out why opening existing files in write mode fails
 - Fix bugs as they appear
 
 ### Next minor release (dev branch)
