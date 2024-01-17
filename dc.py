@@ -73,7 +73,7 @@ class Bot (discord.Client):
     #Function to upload message with file attached
     async def upload (self, name):
         #Split file
-        maxsize = 25000000
+        maxsize = 26214400 #Exact Discord max file size in bytes
         size = os.path.getsize (self.cache + name)
         realNum = size // maxsize + 1
         if size == 0:
