@@ -64,6 +64,7 @@ Be sure to read the release notes for any release though, because _if_ something
 Below is how I currently plan on going forward with the project.
 
 ### Next patch release (patch branch)
+- Figure out why opening existing files in write mode fails
 - Fix bugs as they appear
 
 ### Next minor release (dev branch)
