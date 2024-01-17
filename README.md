@@ -1,6 +1,6 @@
 # discord-fs
 Discord as a filesystem.
-Version `1.0.2`.
+Version `1.0.3-pre-release`.
 
 This is a simple, feature-sparse (for now) implementation of a program allowing you to use Discord as your free, unlimited cloud-storage.
 You assign a channel, mount the filesystem and let the bot do the rest.
@@ -50,7 +50,6 @@ Here is a list of all known bugs, prioritized in functionality impact.
 
 ### Critical
 These bugs will be fixed in the next patch release.
-- Opening existing files to write fails with errno 30 (read-only filesystem)
 
 ### Important
 These bugs will either be fixed in the next patch release or minor release.
@@ -66,7 +65,6 @@ Be sure to read the release notes for any release though, because _if_ something
 Below is how I currently plan on going forward with the project.
 
 ### Next patch release (patch branch)
-- Figure out why opening existing files in write mode fails
 - Fix bugs as they appear
 
 ### Next minor release (dev branch)
