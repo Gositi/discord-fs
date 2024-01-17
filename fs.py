@@ -83,6 +83,12 @@ class Filesystem (fuse.Operations):
         os.lseek (fh, offset, os.SEEK_SET)
         return os.write (fh, buf)
 
+    #Truncate file
+    def truncate (self, path, length, fh = None):
+        print ("tr")
+        with open (self.temp + path, 'r+') as f:
+            f.truncate (length)
+
     #Needed to create file
     def create (self, path, mode, fi=None):
         print ("cr")

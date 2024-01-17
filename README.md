@@ -45,10 +45,21 @@ The data (in order) is the following:
 - Files are readable and downloadable by anyone with access to the filesystem channel
 - FAT stored locally, two clients cannot operate on the same filesystem
 
+## Bugs
+Here is a list of all known bugs, prioritized by functionality impact.
+
+### Critical
+These bugs will be fixed in the next patch release.
+
+### Important
+These bugs will either be fixed in the next patch release or minor release.
+
+### Other
+These bugs will be fixed whenever there is time, but most likely in a future minor release.
+
 ## Roadmap
 Updated versions of this program will be released continuously, and there is no guarantee that new versions won't break data stored in older versions.
-I will try and keep to semantic versioning though, so patch releases _should_ generally be safe.
-Be sure to read the release notes for any release though, because _if_ something breaks (and I'm aware) it will be noted there.
+Therefore, be sure to read the release notes for any release, because _if_ something breaks (and I'm aware) it will be noted there.
 Below is how I currently plan on going forward with the project.
 
 ### Next patch release (patch branch)
