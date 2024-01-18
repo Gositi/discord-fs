@@ -11,7 +11,7 @@ If anything breaks, please tell me in an Issue so I can fix it.
 ## Usage
 First off, you'll need Linux to run this (with FUSE and a modern version of Python installed, should already be installed by default on most distros).
 If you have macOS, I think there is a way to get FUSE working there too which should enable you to run this project.
-This project won't support Windows as it's a completely different platform.
+This project won't support Windows as it is a completely different platform.
 However, https://github.com/DiscordFS/DiscordFS looks relevant (but I'm not affiliated with it in any way).
 All testing and official support is for Ubuntu 23.10 with Python 3.11, but if you have issues with another system I will try and look into it anyways.
 
@@ -31,7 +31,7 @@ This project is still in a too early development stage for me to recommend it fo
 ### Config file
 Most data required by the program at runtime is stored as JSON in the file `config.json`.
 If the file is not present it will be created and you will be prompted to fill it with data.
-The data (in order) is the following:
+The data (in default order) is the following:
 - `token` - Bot token (string): The Discord bot token
 - `channel` - Filesystem channel (integer): The ID of the channel the filesystem operates in
 - `mount` - Mountpoint (string/path): Absolute or relative path to the filesystem mountpoint, `./mnt/` by default
@@ -66,10 +66,10 @@ Below is how I currently plan on going forward with the project.
 - Fix bugs as they appear
 
 ### Next minor release (dev branch)
-- Rethink FAT (preparation for major relase)
-- Store file metadata (mode, permissions, etc.) in FAT
 
 ### Next major release (next branch)
+- Rethink FAT
+- Store file metadata (mode, permissions, etc.)
 - Unlimited file size by splitting into multiple messages
 - Implement directories
 

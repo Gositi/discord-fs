@@ -73,26 +73,26 @@ class Bot (discord.Client):
     #Function to upload message with file attached
     async def upload (self, name):
         #Split file
-        maxsize = 26214400 #Exact Discord max file size in bytes
+        maxSize = 25 * 1024 * 1024 #Discord file size limit
         size = os.path.getsize (self.cache + name)
-        realNum = size // maxsize + 1
         if size == 0:
             #Special case of split, has to be handled separately
             os.system ("cp " + self.cache + name + " " + self.temp + name + "0")
+            numFiles = 1
         else:
-            os.system ("split -b " + str (maxsize) + " -a 1 -d " + self.cache + name + " " + self.temp + name)
+            #Hexadecimal file names, to get leeway for too large files
+            os.system ("split -b " + str (maxSize) + " -a 1 -x " + self.cache + name + " " + self.temp + name)
+            numFiles = -(-size // maxSize) #Ceiling integer division
 
         #Upload files
         files = [] 
-        num = min (10, realNum) #Screw it, cut off at max size and let the user cry
-        for i in range (0, num):
+        for i in range (0, min (10, numFiles)): #Cut off at max file count and forget about the rest
             with open (self.temp + name + str (i), "rb") as f:
                 files.append (discord.File (f, filename = name + str (i)))
         msg = await self.channel.send (content = "File upload", files = files)
 
         #Remove trace files
-        for i in range (0, realNum):
-            os.system ("rm " + self.temp + name + str (i))
+        os.system ("rm " + self.temp + name + "?")
 
         #Return
         return msg.id

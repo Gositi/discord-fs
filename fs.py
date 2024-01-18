@@ -26,7 +26,7 @@ class Filesystem (fuse.Operations):
         elif not self.dc.exists (path):
             raise OSError (errno.ENOENT, "File does not exist") #Tells programs that the file doesn't exist
         else:
-            return {'st_atime': 0.0, 'st_ctime': 0.0, 'st_gid': 1000, 'st_mode': 33204, 'st_mtime': 0.0, 'st_nlink': 1, 'st_size': 25000000, 'st_uid': 1000}
+            return {'st_atime': 0.0, 'st_ctime': 0.0, 'st_gid': 1000, 'st_mode': 33204, 'st_mtime': 0.0, 'st_nlink': 1, 'st_size': 25 * 1024 * 1024 * 10, 'st_uid': 1000}
 
     #Get directory listing
     def readdir (self, path, fh):
