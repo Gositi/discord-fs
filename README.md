@@ -56,6 +56,7 @@ These bugs will either be fixed in the next patch release or minor release.
 
 ### Other
 These bugs will be fixed whenever there is time, but most likely in a future minor release.
+- In very special conditions, ghost uploads of files may occur (that will be unknown to the FS)
 
 ## Roadmap
 Updated versions of this program will be released continuously, and there is no guarantee that new versions won't break data stored in older versions.
@@ -87,7 +88,7 @@ This program is distributed in the hope that it will be useful, but WITHOUT ANY 
 without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 See the GNU General Public License for more details.
 
-I am not responsible for any harm caused to you by using this program, including but not limited to deletion of uploaded files or termination of your Discord user account.
+I am not responsible for any harm caused by using this program, including but not limited to deletion of uploaded files or termination of your Discord user account.
 Additionally, I am not affiliated with Discord and this program is not endorsed by Discord in any way.
-My interpretation of Discord ToS is that this program is compliant, but I am not a lawyer and this does not constitute legal advice.
-Also note that Discord ToS are subject to change.
+My personal interpretation of the Discord ToS is that this program is compliant, but I am not a lawyer and this does not constitute legal advice.
+Also note that the Discord ToS are subject to change at any moment.

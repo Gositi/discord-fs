@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-
 #Provides class for FUSE filesystem functionality
 #Copyright (C) 2024 Simon Bryntse
 #License (GPL 3.0) provided in file 'LICENSE'
@@ -47,8 +45,8 @@ class Filesystem (fuse.Operations):
         print ("op")
         self.dc.open (path)
         if not path in self.list.keys ():
-            self.list [path] = 0
-        self.list [path] += 1
+            self.list [path] = [0, False]
+        self.list [path][0] += 1
         return os.open (self.cache + path, flags)
     
     #Write buffered file contents to the actual file
@@ -56,18 +54,19 @@ class Filesystem (fuse.Operations):
         print ("fl")
         return os.fsync (fh)
     def fsync (self, path, fdatasync, fh):
-        return self.flush (path, fh)
+        print ("fs")
+        return os.fsync (fh)
 
     #Close file
     def release (self, path, fh):
         print ("cl")
         #Close file
         ret = os.close (fh)
-        self.list [path] -= 1
+        self.list [path][0] -= 1
         #Remove file from cache if it isn't used anymore
-        if self.list [path] <= 0:
+        if self.list [path][0] <= 0:
+            if self.list [path][1]: self.dc.close (path) #Reupload new file if it has been edited
             self.list.pop (path)
-            self.dc.close (path)
             os.unlink (self.cache + path)
         return ret
 
@@ -81,6 +80,7 @@ class Filesystem (fuse.Operations):
     def write (self, path, buf, offset, fh):
         print ("wr")
         os.lseek (fh, offset, os.SEEK_SET)
+        self.list [path][1] = True
         return os.write (fh, buf)
 
     #Truncate file
@@ -88,6 +88,7 @@ class Filesystem (fuse.Operations):
         print ("tr")
         with open (self.cache + path, 'r+') as f:
             f.truncate (length)
+        self.list [path][1] = True
 
     #Needed to create file
     def create (self, path, mode, fi=None):
@@ -99,7 +100,7 @@ class Filesystem (fuse.Operations):
         #Sync file to source
         self.dc.sync (path)
         #Add file to list
-        self.list [path] = 1
+        self.list [path] = [1, False]
         return fd
 
     #Rename file
