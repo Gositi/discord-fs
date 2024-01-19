@@ -29,7 +29,7 @@ class Discord:
         self.e = threading.Event ()
         self.r = threading.Event ()
         client.stp (channel, self.sq, self.rq, self.e, self.r, cache, temp)
-        self.t = threading.Thread (target = client.run, args=(token,), kwargs={}) #"log_handler": None})
+        self.t = threading.Thread (target = client.run, args=(token,), kwargs={"log_handler": None})
         self.t.daemon = True
         self.r.clear ()
         self.t.start ()
@@ -111,3 +111,4 @@ class Discord:
         self.r.clear ()
         self.sq.put ({"task": "exit"})
         self.r.wait ()
+        print ("Bot closed.")

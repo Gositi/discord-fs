@@ -16,6 +16,10 @@ class Filesystem (fuse.Operations):
         self.cache = cache
         self.list = {}
         print ("FS ready.")
+
+    #Function ran at unmount
+    def destroy (self, path):
+        print ("Unmount.")
  
     #Get basic file attributes
     def getattr (self, path, fh=None):

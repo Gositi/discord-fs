@@ -12,6 +12,8 @@ import json
 
 #Spin up the system
 def main():
+    print ("Startup.")
+
     #Load config file
     if os.path.exists ("config.json"):
         with open ("config.json", "r") as f:
@@ -73,7 +75,7 @@ def main():
     except:
         print ("Could not remove tempdir (" + temp + "), possibly because it contains trace files. Please remove it manually.")
 
-    print ("Exit (unmount)")
+    print ("Exit.")
 
 if __name__ == '__main__':
     main()
