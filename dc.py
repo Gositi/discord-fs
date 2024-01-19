@@ -112,4 +112,4 @@ class Discord:
         self.sq.put ({"task": "exit"})
         self.r.wait ()
         print ("Bot closed.")
-        
+
