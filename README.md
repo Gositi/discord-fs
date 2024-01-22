@@ -64,7 +64,6 @@ Therefore, be sure to read the release notes for any release, because _if_ somet
 Below is how I currently plan on going forward with the project.
 
 ### Next patch release (patch branch)
-- Rename files and classes to better reflect their purpose
 - Fix bugs as they appear
 
 ### Next minor release (dev branch)

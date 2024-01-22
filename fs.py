@@ -11,8 +11,8 @@ import errno
 import fuse
 
 class Filesystem (fuse.Operations):
-    def __init__ (self, dc, cache):
-        self.dc = dc
+    def __init__ (self, fat, cache):
+        self.fat = fat
         self.cache = cache
         self.list = {}
         print ("FS ready.")
@@ -25,7 +25,7 @@ class Filesystem (fuse.Operations):
     def getattr (self, path, fh=None):
         if path == "/":
             return {'st_atime': 0.0, 'st_ctime': 0.0, 'st_gid': 1000, 'st_mode': 16877, 'st_mtime': 0.0, 'st_nlink': 1, 'st_size': 0, 'st_uid': 1000}
-        elif not self.dc.exists (path):
+        elif not self.fat.exists (path):
             raise OSError (errno.ENOENT, "File does not exist") #Tells programs that the file doesn't exist
         else:
             return {'st_atime': 0.0, 'st_ctime': 0.0, 'st_gid': 1000, 'st_mode': 33204, 'st_mtime': 0.0, 'st_nlink': 1, 'st_size': 25 * 1024 * 1024 * 10, 'st_uid': 1000}
@@ -33,21 +33,21 @@ class Filesystem (fuse.Operations):
     #Get directory listing
     def readdir (self, path, fh):
         dirents = ['.', '..']
-        dirents.extend (self.dc.readdir (path))
+        dirents.extend (self.fat.readdir (path))
         for i in dirents:
             yield i
 
     #Remove file
     def unlink (self, path):
         print ("rm")
-        self.dc.remove (path)
+        self.fat.remove (path)
         if os.path.exists (self.cache + path):
             os.unlink (self.cache + path)
 
     #Opening of file
     def open (self, path, flags):
         print ("op")
-        self.dc.open (path)
+        self.fat.open (path)
         if not path in self.list.keys ():
             self.list [path] = [0, False]
         self.list [path][0] += 1
@@ -69,7 +69,7 @@ class Filesystem (fuse.Operations):
         self.list [path][0] -= 1
         #Remove file from cache if it isn't used anymore
         if self.list [path][0] <= 0:
-            if self.list [path][1]: self.dc.close (path) #Reupload new file if it has been edited
+            if self.list [path][1]: self.fat.close (path) #Reupload new file if it has been edited
             self.list.pop (path)
             os.unlink (self.cache + path)
         return ret
@@ -102,7 +102,7 @@ class Filesystem (fuse.Operations):
         fd = os.open (self.cache + path, os.O_WRONLY | os.O_CREAT, mode)
         os.chown (self.cache + path, uid, gid) #chown to context uid & gid
         #Sync file to source
-        self.dc.sync (path)
+        self.fat.sync (path)
         #Add file to list
         self.list [path] = [1, False]
         return fd
@@ -114,7 +114,7 @@ class Filesystem (fuse.Operations):
         if os.path.exists (self.cache + old):
             os.rename (self.cache + old, self.cache + new)
         #Rename at source
-        self.dc.rename (old, new)
+        self.fat.rename (old, new)
         #Make change in list of open files
         if old in self.list.keys ():
             self.list [new] = self.list.pop (old)
