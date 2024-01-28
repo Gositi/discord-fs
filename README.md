@@ -74,6 +74,7 @@ Below is how I currently plan on going forward with the project.
 - Store file metadata (mode, permissions, etc.)
 - Unlimited file size by splitting into multiple messages
 - Implement directories
+- Cache files for a short while after closing them to save bandwidth
 
 ### Ideas for future major releases
 - Store FAT at Discord, only saving its location locally
