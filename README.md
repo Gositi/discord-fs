@@ -1,6 +1,6 @@
 # discord-fs
 Discord as a filesystem.
-Version `1.1.0`.
+Version `1.1.1`.
 
 This is a simple, feature-sparse (for now) implementation of a program allowing you to use Discord as your free, unlimited cloud-storage.
 You assign a channel, mount the filesystem and let the bot do the rest.
@@ -64,7 +64,6 @@ Therefore, be sure to read the release notes for any release, because _if_ somet
 Below is how I currently plan on going forward with the project.
 
 ### Next patch release (patch branch)
-- Rename files and classes to better reflect their purpose
 - Fix bugs as they appear
 
 ### Next minor release (dev branch)
@@ -85,6 +84,12 @@ Below is how I currently plan on going forward with the project.
 Copyright (C) 2024 Simon Bryntse
 
 License (GPL 3.0) provided in file `LICENSE`
+
+Partially derived from https://github.com/skorokithakis/python-fuse-sample/blob/master/passthrough.py
+
+Copyright (C) 2016 Stavros Korokithakis
+
+License (BSD-2-Clause) provided in file `LICENSE-2`
 
 This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
 without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
