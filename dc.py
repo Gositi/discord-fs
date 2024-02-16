@@ -55,7 +55,7 @@ class Bot (discord.Client):
     async def download (self, msgID, name):
         try:
             #Download files
-            msg = await self.channel.fetch_message (msgID)
+            msg = await self.channel.fetch_message (msgID [0])
             string = ""
             for i, attach in enumerate (msg.attachments):
                 await attach.save (fp = self.temp + name + str (i))
@@ -93,12 +93,12 @@ class Bot (discord.Client):
         os.system ("rm " + self.temp + name + "?")
 
         #Return
-        return msg.id
+        return [msg.id]
 
     #Function to delete message
     async def delete (self, msgID):
         try:
-            msg = await self.channel.fetch_message (msgID)
+            msg = await self.channel.fetch_message (msgID [0])
             await msg.delete ()
         except discord.NotFound:
             return #Message already doesn't exist - weird, but that is what we want to achieve here anyways

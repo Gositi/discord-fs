@@ -12,8 +12,8 @@ class Fat:
         self.file = file
 
         #Load file
-        if os.path.exists (self.fatfile):
-            with open (self.fatfile, "r") as f:
+        if os.path.exists (self.file):
+            with open (self.file, "r") as f:
                 self.fat = json.load (f)
         else:
             self.fat = {"version": 0, "fat": {"files": {}, "dirs": {}, "metadata": {'st_atime': 0.0, 'st_ctime': 0.0, 'st_gid': 1000, 'st_mode': 16877, 'st_mtime': 0.0, 'st_nlink': 1, 'st_size': 0, 'st_uid': 1000}}}
@@ -42,18 +42,25 @@ class Fat:
     #Write FAT to disk
     def write (self):
         with open (self.file, "w") as f:
-            json.dump (self.fat, f)
+            json.dump (self.fat, f, indent = 4)
+
+    #Check if a path exists
+    def exists (self, path):
+        return path [1:] in self.getDir ("/")
 
     #Get file message ID from path to file
     def getFile (self, path):
         return self.fat ["fat"]["files"][path [1:]]["messages"]
 
     #If file exists: update it, if not: create it
-    def updateFile (self, path, messages):
-        if path [1:] in self.getDir ("/"):
-            self.fat ["fat"]["files"][path [1:]]["messages"] = messages
-        else:
-            self.fat ["fat"]["files"][path [1:]] = {"messages": messages, "metadata": {'st_atime': 0.0, 'st_ctime': 0.0, 'st_gid': 1000, 'st_mode': 33204, 'st_mtime': 0.0, 'st_nlink': 1, 'st_size': 25 * 1024 * 1024 * 10, 'st_uid': 1000}}
+    def updateFile (self, path, messages = None, file = None):
+        if messages:
+            if path [1:] in self.getDir ("/"):
+                self.fat ["fat"]["files"][path [1:]]["messages"] = messages
+            else:
+                self.fat ["fat"]["files"][path [1:]] = {"messages": messages, "metadata": {'st_atime': 0.0, 'st_ctime': 0.0, 'st_gid': 1000, 'st_mode': 33204, 'st_mtime': 0.0, 'st_nlink': 1, 'st_size': 25 * 1024 * 1024 * 10, 'st_uid': 1000}}
+        elif file:
+            self.fat ["fat"]["files"][path [1:]] = file
 
     #Remove file (and return it)
     def removeFile (self, path):

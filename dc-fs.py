@@ -26,7 +26,7 @@ def main():
         #Write file with defaults
         with open ("config.json", "w") as f:
             conf = {"token": "BOT TOKEN", "channel": 0, "mount": "./mnt/"}
-            json.dump (conf, f)
+            json.dump (conf, f, indent = 4)
             print ("Fill in newly created config file with bot token, filesystem channel ID and mount directory path.")
             print ("See documentation (README.md) for more details.")
             exit ()
