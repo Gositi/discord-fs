@@ -9,7 +9,7 @@ import json
 import threading
 import queue
 
-class Fat:
+class Ops:
     def __init__(self, temp, cache, channel, token, fatfile):
         self.temp = temp
         self.cache = cache

@@ -4,7 +4,7 @@
 #Copyright (C) 2024 Simon Bryntse
 #License (GPL 3.0) provided in file 'LICENSE'
 
-import fs, fat
+import fs, ops
 import fuse
 import sys
 import os
@@ -59,7 +59,7 @@ def main():
         os.mkdir (temp)
 
     #Spin up system
-    files = fat.Fat (temp, cache, channel, token, "./fat.json")
+    files = ops.Ops (temp, cache, channel, token, "./fat.json")
     fuse.FUSE(fs.Filesystem(files, cache), mount, nothreads=True, foreground=True, allow_other=False)
 
     #Gracefully shut down after unmount
