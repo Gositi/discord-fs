@@ -13,7 +13,7 @@ import os
 #Start the program
 def main ():
     if os.path.exists ("fat.json"):
-        with open (name, "r") as f:
+        with open ("fat.json", "r") as f:
             fat = json.load (f)
     else:
         fat = {}    #Safest option, cannot go wrong
@@ -21,8 +21,8 @@ def main ():
     fat = convert (fat)
 
     #Save new FAT
-    with open (name, "w") as f:
-        json.write (fat, f, indent = 4)
+    with open ("fat.json", "w") as f:
+        json.dump (fat, f, indent = 4)
 
 #Convert the specified FAT file
 def convert (fat):
