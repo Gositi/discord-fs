@@ -13,16 +13,19 @@ import os
 #Start the program
 def main ():
     if os.path.exists ("fat.json"):
-        convert ("fat.json")
+        with open (name, "r") as f:
+            fat = json.load (f)
     else:
-        print ("No FAT file found, running the main program will create one for you.")
+        fat = {}    #Safest option, cannot go wrong
+
+    fat = convert (fat)
+
+    #Save new FAT
+    with open (name, "w") as f:
+        json.write (fat, f, indent = 4)
 
 #Convert the specified FAT file
-def convert (name):
-    #Open FAT
-    with open (name, "r") as f:
-        fat = json.load (f)
-
+def convert (fat):
     #Decide on which version the FAT is
     if "version" in fat.keys ():
         #Is this a file called version or an actual version indicator?
@@ -39,9 +42,7 @@ def convert (name):
         #Oldest version
         newFat = convertOld (fat)
 
-    #Save new FAT
-    with open (name, "w") as f:
-        json.write (newFat, f, indent = 4)
+    return newFat
 
 #Convert a FAT in the oldest format
 def convertOld (oldFat):
