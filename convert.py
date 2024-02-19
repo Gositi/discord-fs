@@ -15,7 +15,7 @@ def main ():
     if os.path.exists ("fat.json"):
         convert ("fat.json")
     else:
-        print ("No FAT found, exiting.")
+        print ("No FAT file found, running the main program will create one for you.")
 
 #Convert the specified FAT file
 def convert (name):
@@ -39,12 +39,55 @@ def convert (name):
         #Oldest version
         newFat = convertOld (fat)
 
-#TODO convert a FAT in the oldest format
-def convertOld (fat):
-    newFat = {"version": 0, "fat": {"files": {}, "dirs": {}, "metadata": {'st_atime': 0.0, 'st_ctime': 0.0, 'st_gid': 1000, 'st_mode': 16877, 'st_mtime': 0.0, 'st_nlink': 1, 'st_size': 0, 'st_uid': 1000}}}
-    for file in fat.keys ():
-        newFat ["fat"]["files"][file [1:]] = {"messages": [fat [file]], "metadata": {'st_atime': 0.0, 'st_ctime': 0.0, 'st_gid': 1000, 'st_mode': 33204, 'st_mtime': 0.0, 'st_nlink': 1, 'st_size': 25 * 1024 * 1024 * 10, 'st_uid': 1000}}
-    return newFat
+    #Save new FAT
+    with open (name, "w") as f:
+        json.write (newFat, f, indent = 4)
+
+#Convert a FAT in the oldest format
+def convertOld (oldFat):
+    #Default layout of FAT
+    fat = {
+        "version": 0,
+        "token": "BOT TOKEN",
+        "mount": "./mnt/",
+        "channel": 0,
+        "fat": {
+            "files": {},
+            "dirs": {},
+            "metadata": {'st_atime': 0.0, 'st_ctime': 0.0, 'st_gid': 1000, 'st_mode': 16877, 'st_mtime': 0.0, 'st_nlink': 1, 'st_size': 0, 'st_uid': 1000}
+            }
+        }
+
+    #Populate new FAT with files from old FAT
+    for file in oldFat.keys ():
+        fat ["fat"]["files"][file [1:]] = {
+            "messages": [oldFat [file]],
+            "metadata": {'st_atime': 0.0, 'st_ctime': 0.0, 'st_gid': 1000, 'st_mode': 33204, 'st_mtime': 0.0, 'st_nlink': 1, 'st_size': 25 * 1024 * 1024 * 10, 'st_uid': 1000}
+        }
+
+    #If config file exists, load config into new FAT and cleanup
+    if os.path.exists ("config.json"):
+        with open ("config.json", "r") as f:
+            conf = json.load (f)
+
+        fat ["token"] = conf ["token"]
+        fat ["mount"] = conf ["mount"]
+        fat ["channel"] = conf ["channel"]
+
+        os.system ("rm config.json")
+
+    #Otherwise, tell user to fill in neccessary fields
+    else:
+        printString = """
+        Please fill in new FAT file (fat.json) with:
+        - "token":\tbot token,
+        - "mount":\tmount directory path,
+        - "channel":\tfilesystem channel ID.
+        See documentation (README.md) for more details.
+        """
+        print (printString)
+    
+    return fat
     
 if __name__ == "__main__":
     main ()

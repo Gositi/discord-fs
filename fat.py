@@ -10,14 +10,8 @@ import os.path
 class Fat:
     def __init__ (self, file):
         self.file = file
-
-        #Load file
-        if os.path.exists (self.file):
-            with open (self.file, "r") as f:
-                self.fat = json.load (f)
-        else:
-            self.fat = {"version": 0, "fat": {"files": {}, "dirs": {}, "metadata": {'st_atime': 0.0, 'st_ctime': 0.0, 'st_gid': 1000, 'st_mode': 16877, 'st_mtime': 0.0, 'st_nlink': 1, 'st_size': 0, 'st_uid': 1000}}}
-            self.write ()
+        with open (self.file, "r") as f:
+            self.fat = json.load (f)
 
     #
     #   Helpers
