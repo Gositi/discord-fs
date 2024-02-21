@@ -1,115 +1,65 @@
-#Provides interface between Discord bot and filesystem
+#Provides interface between filesystem functions and FAT
 #Copyright (C) 2024 Simon Bryntse
 #License (GPL 3.0) provided in file 'LICENSE'
 
-import dc
-import os
-import discord
+#TODO Most of this is a stub for the current single-level filesystem
+
 import json
-import threading
-import queue
+import os.path
 
 class Fat:
-    def __init__(self, temp, cache, channel, token, fatfile):
-        self.temp = temp
-        self.cache = cache
-        self.fatfile = fatfile
+    def __init__ (self, file):
+        self.file = file
+        with open (self.file, "r") as f:
+            self.fat = json.load (f)
 
-        #Load FAT file
-        if os.path.exists (self.fatfile):
-            with open (self.fatfile, "r") as f:
-                self.fat = json.load (f)
-        else:
-            self.fat = {}
+    #
+    #   Helpers
+    #
 
-        #Setup bot
-        client = dc.Bot (intents = discord.Intents.default ())
-        self.sq = queue.Queue ()
-        self.rq = queue.Queue ()
-        self.e = threading.Event ()
-        self.r = threading.Event ()
-        client.stp (channel, self.sq, self.rq, self.e, self.r, cache, temp)
-        self.t = threading.Thread (target = client.run, args=(token,), kwargs={"log_handler": None})
-        self.t.daemon = True
-        self.r.clear ()
-        self.t.start ()
+    #TODO Split a path into directory (as list) and filename
+    def _splitPath (self, path):
+        pass
 
-        #Wait for ready
-        if self.r.wait (timeout = 10):
-            print ("Bot ready.")
-        else:
-            raise Exception ("Discord bot did not start properly.")
+    #TODO Return directory for the specified path
+    def _descendPath (self, path):
+        pass
 
-    #Write to FAT file
-    def writefat (self):
-        with open (self.fatfile, "w") as f:
-            json.dump (self.fat, f)
+    #TODO Return the file for the specified path
+    def _descendFile (self, path):
+        pass
 
-    #Provide list of available files
-    def readdir (self, path):
-        for key in self.fat.keys ():
-            yield key [1:] #Removes "/" before filename
+    #
+    #   Methods
+    #
 
-    #Remove file
-    def remove (self, path):
-        #Remove file at Discord
-        self.e.clear ()
-        self.sq.put ({"task": "delete", "id": self.fat [path]})
-        self.e.wait ()
-        #Update FAT
-        self.fat.pop (path)
-        self.writefat ()
+    #Write FAT to disk
+    def write (self):
+        with open (self.file, "w") as f:
+            json.dump (self.fat, f, indent = 4)
 
-    #Make file available to cache
-    def open (self, path):
-        if not os.path.exists (self.cache + path):
-            if path in self.fat.keys ():
-                self.e.clear ()
-                self.sq.put ({"task": "download", "id": self.fat [path], "name": path})
-                self.e.wait ()
-
-    #Remove file from cache
-    def close (self, path):
-        #Remove old file
-        self.e.clear ()
-        self.sq.put ({"task": "delete", "id": self.fat [path]})
-        self.e.wait ()
-        #Upload new file
-        self.e.clear ()
-        self.sq.put ({"task": "upload", "name": path})
-        self.e.wait ()
-        #Update FAT
-        self.fat [path] = self.rq.get ()
-        self.writefat ()
-
-    #Make sure a certain file in cache also exists at source
-    def sync (self, path):
-        #Remove old file, if it exists
-        if path in self.fat.keys ():
-            self.e.clear ()
-            self.sq.put ({"task": "delete", "id": self.fat [path]})
-            self.e.wait ()
-        #Upload new file
-        self.e.clear ()
-        self.sq.put ({"task": "upload", "name": path})
-        self.e.wait ()
-        #Update FAT
-        self.fat [path] = self.rq.get ()
-        self.writefat ()
-
-    #Check for the existence of a specific file
+    #Check if a path exists
     def exists (self, path):
-        return path in self.fat.keys ()
+        return path [1:] in self.getDir ("/")
 
-    #Rename a file
-    def rename (self, old, new):
-        self.fat [new] = self.fat.pop (old)
-        self.writefat ()
+    #Get file message ID from path to file
+    def getFile (self, path):
+        return self.fat ["fat"]["files"][path [1:]]["messages"]
 
-    #Shut down bot, exit
-    def exit (self):
-        self.r.clear ()
-        self.sq.put ({"task": "exit"})
-        self.r.wait ()
-        print ("Bot closed.")
+    #If file exists: update it, if not: create it
+    def updateFile (self, path, messages = None, file = None):
+        if messages:
+            if path [1:] in self.getDir ("/"):
+                self.fat ["fat"]["files"][path [1:]]["messages"] = messages
+            else:
+                self.fat ["fat"]["files"][path [1:]] = {"messages": messages, "metadata": {'st_atime': 0.0, 'st_ctime': 0.0, 'st_gid': 1000, 'st_mode': 33204, 'st_mtime': 0.0, 'st_nlink': 1, 'st_size': 25 * 1024 * 1024 * 10, 'st_uid': 1000}}
+        elif file:
+            self.fat ["fat"]["files"][path [1:]] = file
 
+    #Remove file (and return it)
+    def removeFile (self, path):
+        return self.fat ["fat"]["files"].pop (path [1:])
+
+    #Get directory listing for directory
+    def getDir (self, path):
+        return self.fat ["fat"]["files"].keys ()
