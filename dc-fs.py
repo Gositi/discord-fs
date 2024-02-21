@@ -4,7 +4,7 @@
 #Copyright (C) 2024 Simon Bryntse
 #License (GPL 3.0) provided in file 'LICENSE'
 
-import fs, fat
+import fs, ops
 import fuse
 import sys
 import os
@@ -14,23 +14,48 @@ import json
 def main():
     print ("Startup.")
 
-    #Load config file
-    if os.path.exists ("config.json"):
-        with open ("config.json", "r") as f:
-            conf = json.load (f)
-        #Read directory paths from config file
-        channel = conf ["channel"]
-        token = conf ["token"]
-        mount = conf ["mount"]
-    else:
-        #Write file with defaults
-        with open ("config.json", "w") as f:
-            conf = {"token": "BOT TOKEN", "channel": 0, "mount": "./mnt/"}
-            json.dump (conf, f)
-            print ("Fill in newly created config file with bot token, filesystem channel ID and mount directory path.")
-            print ("See documentation (README.md) for more details.")
-            exit ()
+    #Load FAT to access configs
+    if os.path.exists ("fat.json"):
+        #Load data
+        with open ("fat.json", "r") as f:
+            fat = json.load (f)
 
+        #Read config from FAT "header"
+        token = fat ["token"]
+        mount = fat ["mount"]
+        channel = fat ["channel"]
+        
+    #Write FAT with defaults
+    else:
+        #Default FAT
+        fat = {
+            "version": 0,
+            "token": "BOT TOKEN",
+            "mount": "./mnt/",
+            "channel": 0,
+            "fat": {
+                "files": {},
+                "dirs": {},
+                "metadata": {'st_atime': 0.0, 'st_ctime': 0.0, 'st_gid': 1000, 'st_mode': 16877, 'st_mtime': 0.0, 'st_nlink': 1, 'st_size': 0, 'st_uid': 1000}
+                }
+            }
+
+        #Write data
+        with open ("fat.json", "w") as f:
+            json.dump (fat, f, indent = 4)
+
+        #Tell user to fill in neccessary fields
+        printString = """
+        Please fill in newly created FAT file (fat.json) with:
+        - "token":\tbot token,
+        - "mount":\tmount directory path,
+        - "channel":\tfilesystem channel ID.
+        See documentation (README.md) for more details.
+        """
+        print (printString)
+
+        exit ()
+    
     #Read directory paths from CLI
     args = sys.argv
     if len (args) >= 2:
@@ -43,38 +68,29 @@ def main():
     if mount [-1] != "/":
         mount += "/"
 
-    #Create cache dir
+    #Create/clean cache dir
     cache = "./.dcfscache/"
     if os.path.isdir (cache):
-        raise IsADirectoryError ("Cachedir (" + cache + ") already exists, remove it and run the program again.")
-    else:
-        os.mkdir (cache)
+        os.system ("rm -r " + cache)
+    os.mkdir (cache)
 
-    #Create temp dir
+    #Create/clean temp dir
     temp = "./.dcfstmp/"
     if os.path.isdir (temp):
-        os.rmdir (cache)
-        raise IsADirectoryError ("Tempdir (" + temp + ") already exists, remove it and run the program again.")
-    else:
-        os.mkdir (temp)
+        os.system ("rm -r " + temp)
+    os.mkdir (temp)
 
     #Spin up system
-    files = fat.Fat (temp, cache, channel, token, "./fat.json")
+    files = ops.Ops (temp, cache, channel, token, "./fat.json")
     fuse.FUSE(fs.Filesystem(files, cache), mount, nothreads=True, foreground=True, allow_other=False)
 
     #Gracefully shut down after unmount
     files.exit ()
 
-    try:
-        os.rmdir (cache)
-    except:
-        print ("Could not remove cachedir (" + cache + "), possibly because it contains trace files. Please remove it manually.")
-
-    try:
-        os.rmdir (temp)
-    except:
-        print ("Could not remove tempdir (" + temp + "), possibly because it contains trace files. Please remove it manually.")
-
+    #Remove cache and temp directories
+    os.system ("rm -r " + cache)
+    os.system ("rm -r " + temp)
+    
     print ("Exit.")
 
 if __name__ == '__main__':
