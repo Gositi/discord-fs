@@ -1,6 +1,6 @@
 # discord-fs
 Discord as a filesystem.
-Version `1.2.0-pre-release`.
+Version `1.2.0`.
 
 This is a simple, feature-sparse (for now) implementation of a program allowing you to use Discord as your free, unlimited cloud-storage.
 You assign a channel, mount the filesystem and let the bot do the rest.
@@ -12,21 +12,22 @@ Note that this is mainly an experimental program and not something made, or at l
 
 ## Usage
 First off, you'll need Linux to run this (with FUSE and a modern version of Python installed, should already be installed by default on most distros).
-
 If you have macOS, I think there is a way to get FUSE working there too which should enable you to run this project.
+
 This project won't support Windows as it is a completely different platform.
 However, https://github.com/DiscordFS/DiscordFS seems similar to what this is trying to do but for Windows (but I'm not affiliated with it in any way).
 
-All testing and official support is for Ubuntu 23.10 with Python 3.11, but if you have issues with another system I will try and look into it anyways.
+All testing and official support is for Ubuntu 23.10 with Python 3.11 and a bunch of usually preinstalled libraries.
+If you have issues with another system I will of course try and look into it anyways.
 
-Before using the FS, you'll need to fix some setup.
+Before using the program, you will need to do some setup.
 I will assume you are techy enough to do this yourself, so this will be in broad terms what to do.
+- Import libraries in `requirements.txt`
 - Create (or use) a discord bot for the FS
 - Fill in data in file `fat.json` (see below)
-- Import libraries in `requirements.txt`
 
 After this is done you should be good to go.
-The FS is started by executing `dc-fs.py` with a modern Python version, and closing it should be done by unmounting the filesystem.
+The program is started by executing `dc-fs.py` with a modern Python version, and closing it should be done by unmounting the filesystem.
 You can optionally specify another mountpoint as a command-line argument, otherwise the default mountpoint in `fat.json` will be used.
 
 ### FAT file
@@ -44,12 +45,12 @@ This will make sure the FAT is up-to-date and compatible with the newest program
 
 ### Limitations
 I plan to fix many of these limitations in later versions of the program, but until then it is good if you know about them.
-- The filesystem is, of course, very slow
+- The filesystem is, of course, quite slow (especially for large files)
 - 250MiB max file size (10x Discord limit, max total size for a single message)
 - No support for directories
 - No file metadata stored, mode, permissions, etc. will be set to default
 - Files are readable and downloadable by anyone with access to the filesystem channel
-- FAT stored locally, two separate clients cannot operate on the same filesystem
+- FAT and config stored locally, two separate clients cannot operate on the same filesystem
 
 ## Bugs
 Here is a list of all currently known bugs, prioritized by functionality impact.
@@ -62,7 +63,7 @@ These bugs will either be fixed in the next patch release or minor release.
 
 ### Other
 These bugs will be fixed whenever there is time, but most likely in a future minor release.
-- In very special conditions, ghost uploads of files may occur (copies of files unknown to the FS)
+- Copies of files in the FS channel that is unknown to the program may occur under very special conditions
 
 ## Roadmap
 Updated versions of this program will be released continuously (whenever I decide to work on it).
@@ -89,6 +90,7 @@ Below is how I currently plan on going forward with the project.
 - Multiple clients connected to the same filesystem
 - Asynchronized filesystem operations
 - Allowing other ways of interacting with the filesystem
+- Building a framework for using other applications as filesystems
 
 ## Legal
 Copyright (C) 2024 Simon Bryntse
