@@ -3,6 +3,8 @@
 #License (GPL 3.0) provided in file 'LICENSE'
 
 import os
+import subprocess
+import glob
 import discord
 
 class Bot (discord.Client):
@@ -56,14 +58,16 @@ class Bot (discord.Client):
         try:
             #Download files
             msg = await self.channel.fetch_message (msgID [0])
-            string = ""
+            args = []
             for i, attach in enumerate (msg.attachments):
                 await attach.save (fp = self.temp + name + str (i))
-                string += " " + self.temp + name + str (i)
+                args.append (self.temp + name + str (i))
 
             #Join files
-            os.system ("cat" + string + " > " + self.cache + name)
-            os.system ("rm" + string)
+            with open (self.cache + name, "w") as f:
+                subprocess.run (["cat"] + args, stdout = f)
+            #Remove trace files
+            subprocess.run (["rm"] + args)
 
         except discord.NotFound:
             print ("The message requested does not exist and an error will occur because of this. This is an unreachable state and will thus not be handled any further.")
@@ -75,11 +79,11 @@ class Bot (discord.Client):
         size = os.path.getsize (self.cache + name)
         if size == 0:
             #Special case of split, has to be handled separately
-            os.system ("cp " + self.cache + name + " " + self.temp + name + "0")
+            subprocess.run (["cp", self.cache + name, self.temp + name + "0"])
             numFiles = 1
         else:
             #Hexadecimal file names, to get leeway for too large files
-            os.system ("split -b " + str (maxSize) + " -a 1 -x " + self.cache + name + " " + self.temp + name)
+            subprocess.run (["split", "-b", str (maxSize), "-a", "1", "-x", self.cache + name, self.temp + name])
             numFiles = -(-size // maxSize) #Ceiling integer division
 
         #Upload files
@@ -90,7 +94,7 @@ class Bot (discord.Client):
         msg = await self.channel.send (content = "File upload", files = files)
 
         #Remove trace files
-        os.system ("rm " + self.temp + name + "?")
+        subprocess.run (["rm"] + glob.glob (self.temp + name + "?"))
 
         #Return
         return [msg.id]
