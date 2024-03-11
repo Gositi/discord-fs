@@ -57,7 +57,6 @@ Here is a list of all currently known bugs, prioritized by functionality impact.
 
 ### Critical
 These bugs will be fixed in the next patch release.
-- Filenames with spaces in them will cause "dirty" crashes
 
 ### Important
 These bugs will either be fixed in the next patch release or minor release.
