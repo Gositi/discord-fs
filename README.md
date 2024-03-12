@@ -78,12 +78,14 @@ Below is how I currently plan on going forward with the project.
 - Fix bugs or minor issues as they appear
 
 ### Next minor release (dev branch)
-- Store file metadata (mode, permissions, etc.)
-- Unlimited file size by splitting into multiple messages
+- Store file metadata (size, mode, permissions, etc.)
+- Allow the system to interact with metadata
 
 ### Future minor releases
+- Unlimited file size by splitting into multiple messages
 - Implement directories
 - Cache files for a short while after closing them to save bandwidth on downloads
+- Optionally saving files encrypted (with obfuscated filenames)
 
 ### Ideas for future major releases
 - Store FAT at Discord, only saving its location locally
