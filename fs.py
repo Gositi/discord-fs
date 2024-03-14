@@ -9,6 +9,7 @@
 import os
 import errno
 import fuse
+import time
 
 class Filesystem (fuse.Operations):
     def __init__ (self, ops, cache):
@@ -20,15 +21,36 @@ class Filesystem (fuse.Operations):
     #Function ran at unmount
     def destroy (self, path):
         print ("Unmount.")
- 
+
+    #TODO Create access function
+
     #Get basic file attributes
     def getattr (self, path, fh=None):
-        if path == "/":
-            return {'st_atime': 0.0, 'st_ctime': 0.0, 'st_gid': 1000, 'st_mode': 16877, 'st_mtime': 0.0, 'st_nlink': 1, 'st_size': 0, 'st_uid': 1000}
-        elif not self.ops.exists (path):
+        if not self.ops.exists (path):
             raise OSError (errno.ENOENT, "File does not exist") #Tells programs that the file doesn't exist
         else:
-            return {'st_atime': 0.0, 'st_ctime': 0.0, 'st_gid': 1000, 'st_mode': 33204, 'st_mtime': 0.0, 'st_nlink': 1, 'st_size': 25 * 1024 * 1024 * 10, 'st_uid': 1000}
+            return self.ops.getMetadata (path)
+
+    #Change mode of file
+    def chmod (self, path, mode):
+        print ("cm")
+        self.ops.changeMetadata (path, "st_mode", mode)
+        self.ops.changeMetadata (path, "st_ctime", time.time ())
+
+    #Change owner of a file
+    def chown (self, path, uid, gid):
+        print ("co")
+        self.ops.changeMetadata (path, "st_uid", uid)
+        self.ops.changeMetadata (path, "st_gid", gid)
+        self.ops.changeMetadata (path, "st_ctime", time.time ())
+
+    #Change timestamps of a file
+    def utimens (self, path, times = None):
+        print ("ut")
+        if not times:
+            times = (time.time (), time.time ())
+        self.ops.changeMetadata (path, "st_atime", times [0])
+        self.ops.changeMetadata (path, "st_mtime", times [1])
 
     #Get directory listing
     def readdir (self, path, fh):
@@ -49,7 +71,7 @@ class Filesystem (fuse.Operations):
         print ("op")
         self.ops.open (path)
         if not path in self.list.keys ():
-            self.list [path] = [0, False]
+            self.list [path] = [0, False, False]
         self.list [path][0] += 1
         return os.open (self.cache + path, flags)
     
@@ -67,9 +89,18 @@ class Filesystem (fuse.Operations):
         #Close file
         ret = os.close (fh)
         self.list [path][0] -= 1
+        #Update timestamps accordingly
+        metadata = self.ops.getMetadata (path)
+        atime = metadata ["st_atime"]
+        mtime = metadata ["st_mtime"]
+        if self.list [path][1]:
+            mtime = time.time ()
+        if self.list [path][2]:
+            atime = time.time ()
+        self.utimens (path, times = (atime, mtime))
         #Remove file from cache if it isn't used anymore
         if self.list [path][0] <= 0:
-            if self.list [path][1]: self.ops.close (path) #Reupload new file if it has been edited
+            if self.list [path][1]: self.ops.close (path)   #Write to Discord if file has been written
             self.list.pop (path)
             os.unlink (self.cache + path)
         return ret
@@ -78,6 +109,7 @@ class Filesystem (fuse.Operations):
     def read (self, path, length, offset, fh):
         print ("re")
         os.lseek (fh, offset, os.SEEK_SET)
+        self.list [path][2] = True
         return os.read (fh, length)
 
     #Write data to file
@@ -104,7 +136,10 @@ class Filesystem (fuse.Operations):
         #Sync file to source
         self.ops.sync (path)
         #Add file to list
-        self.list [path] = [1, False]
+        self.list [path] = [1, False, False]
+        #Change metadata for FS
+        self.chown (path, uid, gid)
+        self.utimens (path)
         return fd
 
     #Rename file
@@ -118,3 +153,4 @@ class Filesystem (fuse.Operations):
         #Make change in list of open files
         if old in self.list.keys ():
             self.list [new] = self.list.pop (old)
+        self.ops.changeMetadata (path, "st_ctime", time.time ())

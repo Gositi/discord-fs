@@ -40,6 +40,15 @@ class Ops:
     def readdir (self, path):
         for item in self.fat.getDir (path): yield item
 
+    #Provide metadata about a certain file
+    def getMetadata (self, path):
+        return self.fat.getMetadata (path)
+
+    #Change part of a files metadata
+    def changeMetadata (self, path, key, value):
+        self.fat.changeMetadata (path, key, value)
+        self.fat.write ()
+
     #Remove file
     def remove (self, path):
         #Remove file at Discord

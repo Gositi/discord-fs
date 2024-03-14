@@ -40,7 +40,7 @@ class Fat:
 
     #Check if a path exists
     def exists (self, path):
-        return path [1:] in self.getDir ("/")
+        return path [1:] in self.getDir ("/") or path == "/"
 
     #Get file message ID from path to file
     def getFile (self, path):
@@ -63,3 +63,17 @@ class Fat:
     #Get directory listing for directory
     def getDir (self, path):
         return self.fat ["fat"]["files"].keys ()
+
+    #Get metadata of file/directory
+    def getMetadata (self, path):
+        if path == "/":
+            return self.fat ["fat"]["metadata"]
+        else:
+            return self.fat ["fat"]["files"][path [1:]]["metadata"]
+
+    def changeMetadata (self, path, key, value):
+        if path == "/":
+            self.fat ["fat"]["metadata"][key] = value
+        else:
+            self.fat ["fat"]["files"][path [1:]]["metadata"][key] = value
+
