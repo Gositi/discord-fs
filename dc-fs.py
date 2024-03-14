@@ -8,6 +8,7 @@ import fs, ops
 import fuse
 import sys
 import os
+import subprocess
 import json
 
 #Spin up the system
@@ -71,13 +72,13 @@ def main():
     #Create/clean cache dir
     cache = "./.dcfscache/"
     if os.path.isdir (cache):
-        os.system ("rm -r " + cache)
+        subprocess.run (["rm", "-r", cache])
     os.mkdir (cache)
 
     #Create/clean temp dir
     temp = "./.dcfstmp/"
     if os.path.isdir (temp):
-        os.system ("rm -r " + temp)
+        subprocess.run (["rm", "-r", temp])
     os.mkdir (temp)
 
     #Spin up system
@@ -88,8 +89,8 @@ def main():
     files.exit ()
 
     #Remove cache and temp directories
-    os.system ("rm -r " + cache)
-    os.system ("rm -r " + temp)
+    subprocess.run (["rm", "-r", cache])
+    subprocess.run (["rm", "-r", temp])
     
     print ("Exit.")
 
