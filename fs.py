@@ -22,8 +22,6 @@ class Filesystem (fuse.Operations):
     def destroy (self, path):
         print ("Unmount.")
 
-    #TODO Create access function
-
     #Get basic file attributes
     def getattr (self, path, fh=None):
         if not self.ops.exists (path):

@@ -48,9 +48,9 @@ I plan to fix many of these limitations in later versions of the program, but un
 - The filesystem is, of course, quite slow (especially for large files)
 - 250MiB max file size (10x Discord limit, max total size for a single message)
 - No support for directories
-- No file metadata stored, mode, permissions, etc. will be set to default
 - Files are readable and downloadable by anyone with access to the filesystem channel
 - FAT and config stored locally, two separate clients cannot operate on the same filesystem
+- No file permissions checks supported, that is considered out of scope
 
 ## Bugs
 Here is a list of all currently known bugs, prioritized by functionality impact.
@@ -78,7 +78,6 @@ Below is how I currently plan on going forward with the project.
 - Fix bugs or minor issues as they appear
 
 ### Next minor release (dev branch)
-- Store file metadata (mode, permissions, etc.)
 - Unlimited file size by splitting into multiple messages
 
 ### Future minor releases
