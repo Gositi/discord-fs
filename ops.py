@@ -36,6 +36,32 @@ class Ops:
         else:
             raise Exception ("Discord bot did not start properly.")
 
+    #
+    #   Bot interface
+    #
+
+    #Download files at specified message IDs
+    def _download (self, msgIDs, name):
+        self.lock.clear ()
+        self.sq.put ({"task": "download", "id": msgIDs, "name": name})
+        self.lock.wait ()
+
+    #Upload specified files
+    def _upload (self, name):
+        self.lock.clear ()
+        self.sq.put ({"task": "upload", "name": name})
+        self.lock.wait ()
+
+    #Remove specified message IDs
+    def _remove (self, msgIDs):
+        self.lock.clear ()
+        self.sq.put ({"task": "delete", "id": msgIDs})
+        self.lock.wait ()
+
+    #
+    #   FS functions
+    #
+
     #Provide list of available files
     def readdir (self, path):
         for item in self.fat.getDir (path): yield item
@@ -52,9 +78,7 @@ class Ops:
     #Remove file
     def remove (self, path):
         #Remove file at Discord
-        self.lock.clear ()
-        self.sq.put ({"task": "delete", "id": self.fat.getFile (path)})
-        self.lock.wait ()
+        self._remove (self.fat.getFile (path))
         #Update FAT
         self.fat.removeFile (path)
         self.fat.write ()
@@ -63,20 +87,14 @@ class Ops:
     def open (self, path):
         if not os.path.exists (self.cache + path):
             if self.fat.exists (path):
-                self.lock.clear ()
-                self.sq.put ({"task": "download", "id": self.fat.getFile (path), "name": path})
-                self.lock.wait ()
+                self._download (self.fat.getFile (path), path)
 
     #Remove file from cache
     def close (self, path):
         #Remove old file
-        self.lock.clear ()
-        self.sq.put ({"task": "delete", "id": self.fat.getFile (path)})
-        self.lock.wait ()
+        self._remove (self.fat.getFile (path))
         #Upload new file
-        self.lock.clear ()
-        self.sq.put ({"task": "upload", "name": path})
-        self.lock.wait ()
+        self._upload (path)
         #Update FAT
         self.fat.updateFile (path, messages = self.rq.get ())
         self.fat.write ()
@@ -85,13 +103,9 @@ class Ops:
     def sync (self, path):
         #Remove old file, if it exists
         if self.fat.exists (path):
-            self.lock.clear ()
-            self.sq.put ({"task": "delete", "id": self.fat.getFile (path)})
-            self.lock.wait ()
+            self._remove (self.fat.getFile (path))
         #Upload new file
-        self.lock.clear ()
-        self.sq.put ({"task": "upload", "name": path})
-        self.lock.wait ()
+        self._upload (path)
         #Update FAT
         self.fat.updateFile (path, messages = self.rq.get ())
         self.fat.write ()
