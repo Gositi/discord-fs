@@ -9,12 +9,12 @@ import discord
 
 class Bot (discord.Client):
     #Basic setup (passing arguments to bot)
-    def stp (self, channelID, sq, rq, e, r, cache, temp):
+    def stp (self, channelID, sq, rq, lock, ready, cache, temp):
         self.channelID = channelID
         self.sq = sq
         self.rq = rq
-        self.e = e
-        self.r = r
+        self.lock = lock
+        self.ready = ready
         self.cache = cache
         self.temp = temp
         self.task = None
@@ -28,8 +28,8 @@ class Bot (discord.Client):
             print ("The filesystem channel does not exist. Make sure that the config file has proper data.")
             return
 
-        self.e.clear ()
-        self.r.set () #Signal the bot is ready
+        self.lock.clear ()
+        self.ready.set () #Signal the bot is ready
         if self.task == None:
             self.task = self.sq.get () #Get first task
 
@@ -47,11 +47,11 @@ class Bot (discord.Client):
                 pass
 
             #Finish and get next task
-            self.e.set ()
+            self.lock.set ()
             self.task = self.sq.get ()
 
         #Signal bot ready for shutdown
-        self.r.set ()
+        self.ready.set ()
 
     #Function to download attached file to a certain message
     async def download (self, msgID, name):

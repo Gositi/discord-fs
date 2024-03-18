@@ -22,16 +22,16 @@ class Ops:
         client = dc.Bot (intents = discord.Intents.default ())
         self.sq = queue.Queue ()
         self.rq = queue.Queue ()
-        self.e = threading.Event ()
-        self.r = threading.Event ()
-        client.stp (channel, self.sq, self.rq, self.e, self.r, cache, temp)
+        self.lock = threading.Event ()
+        self.ready = threading.Event ()
+        client.stp (channel, self.sq, self.rq, self.lock, self.ready, cache, temp)
         self.t = threading.Thread (target = client.run, args=(token,), kwargs={"log_handler": None})
         self.t.daemon = True
-        self.r.clear ()
+        self.ready.clear ()
         self.t.start ()
 
         #Wait for ready
-        if self.r.wait (timeout = 10):
+        if self.ready.wait (timeout = 10):
             print ("Bot ready.")
         else:
             raise Exception ("Discord bot did not start properly.")
@@ -52,9 +52,9 @@ class Ops:
     #Remove file
     def remove (self, path):
         #Remove file at Discord
-        self.e.clear ()
+        self.lock.clear ()
         self.sq.put ({"task": "delete", "id": self.fat.getFile (path)})
-        self.e.wait ()
+        self.lock.wait ()
         #Update FAT
         self.fat.removeFile (path)
         self.fat.write ()
@@ -63,20 +63,20 @@ class Ops:
     def open (self, path):
         if not os.path.exists (self.cache + path):
             if self.fat.exists (path):
-                self.e.clear ()
+                self.lock.clear ()
                 self.sq.put ({"task": "download", "id": self.fat.getFile (path), "name": path})
-                self.e.wait ()
+                self.lock.wait ()
 
     #Remove file from cache
     def close (self, path):
         #Remove old file
-        self.e.clear ()
+        self.lock.clear ()
         self.sq.put ({"task": "delete", "id": self.fat.getFile (path)})
-        self.e.wait ()
+        self.lock.wait ()
         #Upload new file
-        self.e.clear ()
+        self.lock.clear ()
         self.sq.put ({"task": "upload", "name": path})
-        self.e.wait ()
+        self.lock.wait ()
         #Update FAT
         self.fat.updateFile (path, messages = self.rq.get ())
         self.fat.write ()
@@ -85,13 +85,13 @@ class Ops:
     def sync (self, path):
         #Remove old file, if it exists
         if self.fat.exists (path):
-            self.e.clear ()
+            self.lock.clear ()
             self.sq.put ({"task": "delete", "id": self.fat.getFile (path)})
-            self.e.wait ()
+            self.lock.wait ()
         #Upload new file
-        self.e.clear ()
+        self.lock.clear ()
         self.sq.put ({"task": "upload", "name": path})
-        self.e.wait ()
+        self.lock.wait ()
         #Update FAT
         self.fat.updateFile (path, messages = self.rq.get ())
         self.fat.write ()
@@ -107,8 +107,8 @@ class Ops:
 
     #Shut down bot, exit
     def exit (self):
-        self.r.clear ()
+        self.ready.clear ()
         self.sq.put ({"task": "exit"})
-        self.r.wait ()
+        self.ready.wait ()
         print ("Bot closed.")
 
