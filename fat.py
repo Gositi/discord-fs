@@ -71,6 +71,7 @@ class Fat:
         else:
             return self.fat ["fat"]["files"][path [1:]]["metadata"]
 
+    #Change metadata values of file/directory
     def changeMetadata (self, path, key, value):
         if path == "/":
             self.fat ["fat"]["metadata"][key] = value

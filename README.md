@@ -2,23 +2,15 @@
 Discord as a filesystem.
 Version `1.3.0-pre-release`.
 
-This is a simple, feature-sparse (for now) implementation of a program allowing you to use Discord as your free, unlimited cloud-storage.
+This is a program/bot allowing you to use Discord as your free, unlimited cloud-storage.
 You assign a channel, mount the filesystem and let the bot do the rest.
-
-This is a hobby project of mine, forks and pull requests are welcome (following the roadmap below or not)!
-If anything breaks, please tell me in a Github Issue so I can fix it.
 
 Note that this is mainly an experimental program and not something made, or at least intended, to be used seriously.
 
 ## Usage
 First off, you'll need Linux to run this (with FUSE and a modern version of Python installed, should already be installed by default on most distros).
-If you have macOS, I think there is a way to get FUSE working there too which should enable you to run this project.
-
-This project won't support Windows as it is a completely different platform.
-However, https://github.com/DiscordFS/DiscordFS seems similar to what this is trying to do but for Windows (but I'm not affiliated with it in any way).
-
-All testing and official support is for Ubuntu 23.10 with Python 3.11 and a bunch of usually preinstalled libraries.
-If you have issues with another system I will of course try and look into it anyways.
+All testing and official support is for Ubuntu 23.10 with Python 3.11 and the preinstalled libraries.
+If you have issues with another (Linux) system I will of course try and look into it anyways!
 
 Before using the program, you will need to do some setup.
 I will assume you are techy enough to do this yourself, so this will be in broad terms what to do.
@@ -48,8 +40,8 @@ I plan to fix many of these limitations in later versions of the program, but un
 - The filesystem is, of course, quite slow (especially for large files)
 - 250MiB max file size (10x Discord limit, max total size for a single message)
 - No support for directories
-- Files are readable and downloadable by anyone with access to the filesystem channel
-- FAT and config stored locally, two separate clients cannot operate on the same filesystem
+- Files are fully accessible by anyone with access to the filesystem channel
+- Multiple clients cannot operate on the same filesystem
 - No file permissions checks supported, that is considered out of scope
 
 ## Bugs
@@ -82,14 +74,14 @@ Below is how I currently plan on going forward with the project.
 
 ### Future minor releases
 - Implement directories
-- Cache files for a short while after closing them to save bandwidth on downloads
+- Encryption of files (and obfuscation of filenames)
+- File integrity verification
+- Cache files for a short while after closing them to save time on up- and downloads
 
 ### Ideas for future major releases
-- Store FAT at Discord, only saving its location locally
-- Multiple clients connected to the same filesystem
 - Asynchronized filesystem operations
-- Allowing other ways of interacting with the filesystem
-- Building a framework for using other applications as filesystems
+- Generalizing the concept for more hosts or access methods
+- Multiple clients connected to the same filesystem
 
 ## Legal
 Copyright (C) 2024 Simon Bryntse

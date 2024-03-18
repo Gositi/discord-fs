@@ -25,7 +25,7 @@ class Filesystem (fuse.Operations):
     #Get basic file attributes
     def getattr (self, path, fh=None):
         if not self.ops.exists (path):
-            raise OSError (errno.ENOENT, "File does not exist") #Tells programs that the file doesn't exist
+            raise OSError (errno.ENOENT, "File does not exist")
         else:
             return self.ops.getMetadata (path)
 

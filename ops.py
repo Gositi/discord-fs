@@ -40,6 +40,8 @@ class Ops:
     #   Bot interface
     #
 
+    #TODO move file splitting and merging here (from bot in dc.py)
+
     #Download files at specified message IDs
     def _download (self, msgIDs, name):
         self.lock.clear ()
