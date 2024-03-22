@@ -33,6 +33,15 @@ class Fat:
     #   Methods
     #
 
+    #Get info about FS usage
+    def statfs (self):
+        blocks = 0
+        files = 0
+        for file in self.fat ["fat"]["files"].keys ():
+            files += 1
+            blocks += -(-self.fat ["fat"]["files"][file]["metadata"]["st_size"] // (24 * 1024 ** 2))
+        return (blocks, files)
+
     #Write FAT to disk
     def write (self):
         with open (self.file, "w") as f:
