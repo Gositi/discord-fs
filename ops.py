@@ -99,6 +99,7 @@ class Ops:
         self._upload (path)
         #Update FAT
         self.fat.updateFile (path, messages = self.rq.get ())
+        self.fat.changeMetadata (path, "st_size", os.path.getsize (self.cache + path))
         self.fat.write ()
 
     #Make sure a certain file in cache also exists at source
@@ -110,6 +111,7 @@ class Ops:
         self._upload (path)
         #Update FAT
         self.fat.updateFile (path, messages = self.rq.get ())
+        self.fat.changeMetadata (path, "st_size", os.path.getsize (self.cache + path))
         self.fat.write ()
 
     #Check for the existence of a specific file
