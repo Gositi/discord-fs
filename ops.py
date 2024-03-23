@@ -130,7 +130,3 @@ class Ops:
         self.ready.wait ()
         print ("Bot closed.")
 
-    #Get data about FS usage
-    def statfs (self):
-        return self.fat.statfs ()
-

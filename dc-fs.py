@@ -83,7 +83,7 @@ def main():
 
     #Spin up system
     files = ops.Ops (temp, cache, channel, token, "./fat.json")
-    fuse.FUSE(fs.dcfs(files, cache), mount, nothreads=True, foreground=True, allow_other=False)
+    fuse.FUSE (fs.Filesystem (files, cache), mount, nothreads = True, foreground = True, allow_other = False)
 
     #Gracefully shut down after unmount
     files.exit ()

@@ -11,8 +11,7 @@ import errno
 import fuse
 import time
 
-#Filesystem
-class dcfs (fuse.Operations):
+class Filesystem (fuse.Operations):
     def __init__ (self, ops, cache):
         self.ops = ops
         self.cache = cache
@@ -22,19 +21,6 @@ class dcfs (fuse.Operations):
     #Function ran at unmount
     def destroy (self, path):
         print ("Unmount.")
-
-    #Expose FS information
-    def statfs(self, path):
-        print ("st")
-        (blocks, files) = self.ops.statfs ()
-        discord = 1024 ** 4 #Just something I came up with, to convey the idea of unlimited
-        return {
-            'f_bavail': discord - files * 10,
-            'f_bfree': discord - blocks,
-            'f_blocks': discord,
-            'f_frsize': 25 * 1024 ** 2,
-            'f_files': files
-        }
 
     #Get basic file attributes
     def getattr (self, path, fh=None):
