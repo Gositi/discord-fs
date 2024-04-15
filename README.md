@@ -1,6 +1,6 @@
 # discord-fs
 Discord as a filesystem.
-Version `1.3.0`.
+Version `1.4.0-pre-release`.
 
 This is a program/bot allowing you to use Discord as your free, unlimited cloud-storage.
 You assign a channel, mount the filesystem and let the bot do the rest.
@@ -100,5 +100,3 @@ See the GNU General Public License for more details.
 
 I am not responsible for any harm caused by using this program, including but not limited to loss of data or termination of your Discord account(s).
 Additionally, I am not affiliated with Discord and this program is not endorsed by Discord in any way.
-My personal interpretation of the Discord ToS is that this program is compliant, but I am not a lawyer and this does not constitute legal advice.
-Also note that the Discord ToS are subject to change at any moment, so even if this program was compliant when created it might not be now.

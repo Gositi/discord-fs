@@ -9,6 +9,8 @@ import discord
 import json
 import threading
 import queue
+import subprocess
+import glob
 
 class Ops:
     def __init__(self, temp, cache, channel, token, fatfile):
@@ -40,19 +42,47 @@ class Ops:
     #   Bot interface
     #
 
-    #TODO move file splitting and merging here (from bot in dc.py)
-
     #Download files at specified message IDs
     def _download (self, msgIDs, name):
+        #Download files
         self.lock.clear ()
         self.sq.put ({"task": "download", "id": msgIDs, "name": name})
         self.lock.wait ()
 
+        #Join files
+        filenames = self.rq.get ()
+        with open (self.cache + name, "w") as f:
+            subprocess.run (["cat"] + filenames, stdout = f)
+        #Remove trace files after joining
+        subprocess.run (["rm"] + filenames)
+
     #Upload specified files
     def _upload (self, name):
+        #Split file
+        maxSize = 25 * 1024 * 1024 #Discord file size limit
+        size = os.path.getsize (self.cache + name)
+        if size == 0:
+            #Special case of split, has to be handled separately
+            subprocess.run (["cp", self.cache + name, self.temp + name + "0"])
+            num = 1
+        else:
+            #Hexadecimal file names, to get leeway for too large files
+            subprocess.run (["split", "-b", str (maxSize), "-a", "1", "-x", self.cache + name, self.temp + name])
+            num = -(-size // maxSize) #Ceiling integer division
+
+        #Create array of filenames
+        names = [name + str (i) for i in range (num)]
+
+        #Upload files
         self.lock.clear ()
-        self.sq.put ({"task": "upload", "name": name})
+        self.sq.put ({"task": "upload", "names": names [:10]})
         self.lock.wait ()
+        messages = self.rq.get ()
+
+        #Remove trace files
+        subprocess.run (["rm"] + glob.glob (self.temp + name + "?"))
+
+        return messages
 
     #Remove specified message IDs
     def _remove (self, msgIDs):
@@ -96,9 +126,9 @@ class Ops:
         #Remove old file
         self._remove (self.fat.getFile (path))
         #Upload new file
-        self._upload (path)
+        messages = self._upload (path)
         #Update FAT
-        self.fat.updateFile (path, messages = self.rq.get ())
+        self.fat.updateFile (path, messages = messages)
         self.fat.changeMetadata (path, "st_size", os.path.getsize (self.cache + path))
         self.fat.write ()
 
@@ -108,9 +138,9 @@ class Ops:
         if self.fat.exists (path):
             self._remove (self.fat.getFile (path))
         #Upload new file
-        self._upload (path)
+        messages = self._upload (path)
         #Update FAT
-        self.fat.updateFile (path, messages = self.rq.get ())
+        self.fat.updateFile (path, messages = messages)
         self.fat.changeMetadata (path, "st_size", os.path.getsize (self.cache + path))
         self.fat.write ()
 
