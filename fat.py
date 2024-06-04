@@ -52,7 +52,7 @@ class Fat:
             if path [1:] in self.getDir ("/"):
                 self.fat ["fat"]["files"][path [1:]]["messages"] = messages
             else:
-                self.fat ["fat"]["files"][path [1:]] = {"messages": messages, "metadata": {'st_atime': 0.0, 'st_ctime': 0.0, 'st_gid': 1000, 'st_mode': 33204, 'st_mtime': 0.0, 'st_nlink': 1, 'st_size': 25 * 1024 * 1024 * 10, 'st_uid': 1000}}
+                self.fat ["fat"]["files"][path [1:]] = {"messages": messages, "metadata": {'st_atime': 0.0, 'st_ctime': 0.0, 'st_gid': 1000, 'st_mode': 33204, 'st_mtime': 0.0, 'st_nlink': 1, 'st_size': 25 * 1024 * 1024 * 7, 'st_uid': 1000}}
         elif file:
             self.fat ["fat"]["files"][path [1:]] = file
 

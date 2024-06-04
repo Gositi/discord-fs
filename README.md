@@ -1,6 +1,6 @@
 # discord-fs
 Discord as a filesystem.
-Version `1.3.0`.
+Version `1.3.1`.
 
 This is a program/bot allowing you to use Discord as your free, unlimited cloud-storage.
 You assign a channel, mount the filesystem and let the bot do the rest.
@@ -38,7 +38,7 @@ This will make sure the FAT is up-to-date and compatible with the newest program
 ### Limitations
 I plan to fix many of these limitations in later versions of the program, but until then it is good if you know about them.
 - The filesystem is, of course, quite slow (especially for large files)
-- 250MiB max file size (10x Discord limit, max total size for a single message)
+- 175MiB max file size (7x Discord limit, max total size for a single message)
 - No support for directories
 - Files are fully accessible by anyone with access to the filesystem channel
 - Multiple clients cannot operate on the same filesystem
