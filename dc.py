@@ -77,10 +77,11 @@ class Bot (discord.Client):
         for name in names:
             with open (self.temp + name, "rb") as f:
                 files.append (discord.File (f, filename = name))
-        msg = await self.channel.send (content = "File upload", files = files)
-
-        #Return
-        return msg.id
+        try:
+            msg = await self.channel.send (content = "File upload", files = files)
+            return msg.id
+        except discord.HTTPException:
+            print ("An error occured and the whole or parts of the file will not be uploaded. Please report this, along with file size, to the author.")
 
     #Function to delete message
     async def delete (self, msgIDs):

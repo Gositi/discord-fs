@@ -60,7 +60,7 @@ class Ops:
     #Upload specified files
     def _upload (self, name):
         #Split file
-        maxSize = 8 * 1024 * 1024 #Discord file size limit
+        maxSize = 25 * 1024 * 1024 #Discord file size limit
         size = os.path.getsize (self.cache + name)
         if size == 0:
             #Special case of split, has to be handled separately
@@ -75,8 +75,8 @@ class Ops:
 
         #Upload files
         messages = []
-        #Get filenames 10 by 10
-        for subnames in [names [i : i + 10] for i in range (0, len (names), 10)]:
+        #Get filenames 7 by 7 (not 10 by 10 because of inexplicable errors)
+        for subnames in [names [i : i + 7] for i in range (0, len (names), 7)]:
             self.lock.clear ()
             self.sq.put ({"task": "upload", "names": subnames})
             self.lock.wait ()
