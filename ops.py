@@ -27,7 +27,8 @@ class Ops:
         self.lock = threading.Event ()
         self.ready = threading.Event ()
         client.stp (channel, self.sq, self.rq, self.lock, self.ready, cache, temp)
-        self.t = threading.Thread (target = client.run, args=(token,), kwargs={"log_handler": None})
+        #self.t = threading.Thread (target = client.run, args=(token,), kwargs={"log_handler": None})
+        self.t = threading.Thread (target = client.run, args=(token,))
         self.t.daemon = True
         self.ready.clear ()
         self.t.start ()
@@ -48,9 +49,9 @@ class Ops:
         self.lock.clear ()
         self.sq.put ({"task": "download", "id": msgIDs, "name": name})
         self.lock.wait ()
+        filenames = self.rq.get ()
 
         #Join files
-        filenames = self.rq.get ()
         with open (self.cache + name, "w") as f:
             subprocess.run (["cat"] + filenames, stdout = f)
         #Remove trace files after joining
@@ -59,28 +60,30 @@ class Ops:
     #Upload specified files
     def _upload (self, name):
         #Split file
-        maxSize = 25 * 1024 * 1024 #Discord file size limit
+        maxSize = 8 * 1024 * 1024 #Discord file size limit
         size = os.path.getsize (self.cache + name)
         if size == 0:
             #Special case of split, has to be handled separately
             subprocess.run (["cp", self.cache + name, self.temp + name + "0"])
-            num = 1
         else:
-            #Hexadecimal file names, to get leeway for too large files
-            subprocess.run (["split", "-b", str (maxSize), "-a", "1", "-x", self.cache + name, self.temp + name])
-            num = -(-size // maxSize) #Ceiling integer division
+            #Regular file splitting
+            subprocess.run (["split", "-b", str (maxSize), "-d", self.cache + name, self.temp + name])
 
         #Create array of filenames
-        names = [name + str (i) for i in range (num)]
+        names = glob.glob (name [1:] + "*", root_dir = self.temp)
+        names.sort ()
 
         #Upload files
-        self.lock.clear ()
-        self.sq.put ({"task": "upload", "names": names [:10]})
-        self.lock.wait ()
-        messages = self.rq.get ()
+        messages = []
+        #Get filenames 10 by 10
+        for subnames in [names [i : i + 10] for i in range (0, len (names), 10)]:
+            self.lock.clear ()
+            self.sq.put ({"task": "upload", "names": subnames})
+            self.lock.wait ()
+            messages.append (self.rq.get ())
 
         #Remove trace files
-        subprocess.run (["rm"] + glob.glob (self.temp + name + "?"))
+        subprocess.run (["rm"] + [self.temp + name for name in names])
 
         return messages
 

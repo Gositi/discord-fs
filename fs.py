@@ -112,7 +112,7 @@ class Filesystem (fuse.Operations):
 
     #Write data to file
     def write (self, path, buf, offset, fh):
-        print ("wr")
+        #print ("wr") #DEBUG
         os.lseek (fh, offset, os.SEEK_SET)
         self.list [path][1] = True
         return os.write (fh, buf)

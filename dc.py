@@ -52,17 +52,23 @@ class Bot (discord.Client):
 
     #Function to download attached file to a certain message
     async def download (self, msgIDs, name):
+        files = []
+
         try:
             #Download files
-            msg = await self.channel.fetch_message (msgIDs [0])
-            args = []
-            for i, attach in enumerate (msg.attachments):
-                await attach.save (fp = self.temp + name + str (i))
-                args.append (self.temp + name + str (i))
-            return args
+            i = 0
+            for msgID in msgIDs:
+                msg = await self.channel.fetch_message (msgID)
+                for attach in msg.attachments:
+                    await attach.save (fp = self.temp + name + str (i))
+                    files.append (self.temp + name + str (i))
+                    i += 1
 
         except discord.NotFound:
-            print ("The message requested does not exist and an error will occur because of this. This is an unreachable state and will thus not be handled any further.")
+            print ("A requested message does not exist and an error WILL occur because of this. This program does not know how to handle this.")
+
+        finally:
+            return files
 
     #Function to upload message with file attached
     async def upload (self, names):
@@ -74,12 +80,13 @@ class Bot (discord.Client):
         msg = await self.channel.send (content = "File upload", files = files)
 
         #Return
-        return [msg.id]
+        return msg.id
 
     #Function to delete message
     async def delete (self, msgIDs):
-        try:
-            msg = await self.channel.fetch_message (msgIDs [0])
-            await msg.delete ()
-        except discord.NotFound:
-            return #Message already doesn't exist - weird, but that is what we want to achieve here anyways
+        for msgID in msgIDs:
+            try:
+                msg = await self.channel.fetch_message (msgID)
+                await msg.delete ()
+            except discord.NotFound:
+                pass #Message already doesn't exist - weird, but that is what we want to achieve here anyways
