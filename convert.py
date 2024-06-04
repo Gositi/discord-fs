@@ -63,7 +63,7 @@ def convertOld (oldFat):
     for file in oldFat.keys ():
         fat ["fat"]["files"][file [1:]] = {
             "messages": [oldFat [file]],
-            "metadata": {'st_atime': 0.0, 'st_ctime': 0.0, 'st_gid': 1000, 'st_mode': 33204, 'st_mtime': 0.0, 'st_nlink': 1, 'st_size': 25 * 1024 * 1024 * 10, 'st_uid': 1000}
+            "metadata": {'st_atime': 0.0, 'st_ctime': 0.0, 'st_gid': 1000, 'st_mode': 33204, 'st_mtime': 0.0, 'st_nlink': 1, 'st_size': 25 * 1024 * 1024 * 7, 'st_uid': 1000}
         }
 
     #If config file exists, load config into new FAT and cleanup
