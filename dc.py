@@ -25,7 +25,7 @@ class Bot (discord.Client):
             print ("The filesystem channel does not exist. Make sure that the config file has proper data.")
             return
 
-        self.lock.clear ()
+        self.lock.set ()
         self.ready.set () #Signal the bot is ready
         if self.task == None:
             self.task = self.sq.get () #Get first task

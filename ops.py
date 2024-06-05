@@ -46,6 +46,7 @@ class Ops:
     #Download files at specified message IDs
     def _download (self, msgIDs, name):
         #Download files
+        self.lock.wait ()
         self.lock.clear ()
         self.sq.put ({"task": "download", "id": msgIDs, "name": name})
         self.lock.wait ()
@@ -77,6 +78,7 @@ class Ops:
         messages = []
         #Get filenames 7 by 7 (not 10 by 10 because of inexplicable errors)
         for subnames in [names [i : i + 7] for i in range (0, len (names), 7)]:
+            self.lock.wait ()
             self.lock.clear ()
             self.sq.put ({"task": "upload", "names": subnames})
             self.lock.wait ()
@@ -89,6 +91,7 @@ class Ops:
 
     #Remove specified message IDs
     def _remove (self, msgIDs):
+        self.lock.wait ()
         self.lock.clear ()
         self.sq.put ({"task": "delete", "id": msgIDs})
         self.lock.wait ()
