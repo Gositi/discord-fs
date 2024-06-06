@@ -13,7 +13,7 @@ import subprocess
 import glob
 
 class Ops:
-    def __init__(self, temp, cache, channel, token, fatfile):
+    def __init__(self, DEBUG, temp, cache, channel, token, fatfile):
         self.temp = temp
         self.cache = cache
 
@@ -27,8 +27,12 @@ class Ops:
         self.lock = threading.Event ()
         self.ready = threading.Event ()
         client.stp (channel, self.sq, self.rq, self.lock, self.ready, cache, temp)
-        #self.t = threading.Thread (target = client.run, args=(token,), kwargs={"log_handler": None})
-        self.t = threading.Thread (target = client.run, args=(token,))
+
+        if DEBUG:
+            self.t = threading.Thread (target = client.run, args=(token,))
+        else:
+            self.t = threading.Thread (target = client.run, args=(token,), kwargs={"log_handler": None})
+
         self.t.daemon = True
         self.ready.clear ()
         self.t.start ()

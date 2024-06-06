@@ -13,6 +13,10 @@ import json
 
 #Spin up the system
 def main():
+    #DEBUG = False
+    DEBUG = True
+    if DEBUG: print ("Debug mode on.")
+
     print ("Startup.")
 
     #Load FAT to access configs
@@ -82,8 +86,8 @@ def main():
     os.mkdir (temp)
 
     #Spin up system
-    files = ops.Ops (temp, cache, channel, token, "./fat.json")
-    fuse.FUSE (fs.Filesystem (files, cache), mount, nothreads = True, foreground = True, allow_other = False)
+    files = ops.Ops (DEBUG, temp, cache, channel, token, "./fat.json")
+    fuse.FUSE (fs.Filesystem (DEBUG, files, cache), mount, nothreads = True, foreground = True, allow_other = False)
 
     #Gracefully shut down after unmount
     files.exit ()
