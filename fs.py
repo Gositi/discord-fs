@@ -23,6 +23,10 @@ class Filesystem (fuse.Operations):
     def destroy (self, path):
         print ("Unmount.")
 
+    #Get basic filesystem info
+    def statfs (self, path):
+        return {"f_namemax": 128} #Only return namemax, in order to make renaming files in GUI possible
+
     #Get basic file attributes
     def getattr (self, path, fh=None):
         if not self.ops.exists (path):

@@ -160,6 +160,10 @@ class Ops:
 
     #Rename a file
     def rename (self, old, new):
+        #Remove target if it already exists
+        if self.fat.exists (new):
+            self._remove (self.fat.getFile (new))
+        #Rename file
         self.fat.updateFile (new, file = self.fat.removeFile (old))
         self.fat.write ()
 

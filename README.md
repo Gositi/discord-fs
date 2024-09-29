@@ -48,7 +48,6 @@ These bugs will be fixed in the next patch release.
 
 ### Important
 These bugs will either be fixed in the next patch release or minor release.
-- Renaming of files in GUI (such as Nautilus) is not supported
 
 ### Other
 These bugs will be fixed whenever there is time, but most likely in a future minor release.
