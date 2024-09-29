@@ -32,14 +32,14 @@ class Filesystem (fuse.Operations):
 
     #Change mode of file
     def chmod (self, path, mode):
-        if self.DEBUG: print ("chmod")
+        if self.DEBUG: print ("chmod", path)
 
         self.ops.changeMetadata (path, "st_mode", mode)
         self.ops.changeMetadata (path, "st_ctime", time.time ())
 
     #Change owner of a file
     def chown (self, path, uid, gid):
-        if self.DEBUG: print ("chown")
+        if self.DEBUG: print ("chown", path)
 
         self.ops.changeMetadata (path, "st_uid", uid)
         self.ops.changeMetadata (path, "st_gid", gid)
@@ -47,7 +47,7 @@ class Filesystem (fuse.Operations):
 
     #Change timestamps of a file
     def utimens (self, path, times = None):
-        if self.DEBUG:  print ("utimens")
+        if self.DEBUG:  print ("utimens", path)
 
         if not times:
             times = (time.time (), time.time ())
@@ -63,7 +63,7 @@ class Filesystem (fuse.Operations):
 
     #Remove file
     def unlink (self, path):
-        if self.DEBUG: print ("unlink")
+        if self.DEBUG: print ("unlink", path)
 
         self.ops.remove (path)
         if os.path.exists (self.cache + path):
@@ -71,7 +71,7 @@ class Filesystem (fuse.Operations):
 
     #Opening of file
     def open (self, path, flags):
-        if self.DEBUG: print ("open")
+        if self.DEBUG: print ("open", path)
 
         self.ops.open (path)
         if not path in self.list.keys ():
@@ -81,15 +81,15 @@ class Filesystem (fuse.Operations):
     
     #Write buffered file contents to the actual file
     def flush (self, path, fh):
-        if self.DEBUG: print ("flush")
+        if self.DEBUG: print ("flush", path)
         return os.fsync (fh)
     def fsync (self, path, fdatasync, fh):
-        if self.DEBUG: print ("fsync")
+        if self.DEBUG: print ("fsync", path)
         return os.fsync (fh)
 
     #Close file
     def release (self, path, fh):
-        if self.DEBUG: print ("release")
+        if self.DEBUG: print ("release", path)
 
         #Close file
         ret = os.close (fh)
@@ -112,7 +112,7 @@ class Filesystem (fuse.Operations):
 
     #Read data from file
     def read (self, path, length, offset, fh):
-        if self.DEBUG: print ("read")
+        if self.DEBUG: print ("read", path)
 
         os.lseek (fh, offset, os.SEEK_SET)
         self.list [path][2] = True
@@ -120,7 +120,7 @@ class Filesystem (fuse.Operations):
 
     #Write data to file
     def write (self, path, buf, offset, fh):
-        if self.DEBUG: print ("write")
+        if self.DEBUG: print ("write", path)
 
         os.lseek (fh, offset, os.SEEK_SET)
         self.list [path][1] = True
@@ -128,7 +128,7 @@ class Filesystem (fuse.Operations):
 
     #Truncate file
     def truncate (self, path, length, fh = None):
-        if self.DEBUG: print ("truncate")
+        if self.DEBUG: print ("truncate", path)
 
         with open (self.cache + path, 'r+') as f:
             f.truncate (length)
@@ -136,7 +136,7 @@ class Filesystem (fuse.Operations):
 
     #Needed to create file
     def create (self, path, mode, fi=None):
-        if self.DEBUG: print ("create")
+        if self.DEBUG: print ("create", path)
 
         #Create file in cache
         uid, gid, pid = fuse.fuse_get_context ()
@@ -154,7 +154,7 @@ class Filesystem (fuse.Operations):
 
     #Rename file
     def rename (self, old, new):
-        if self.DEBUG: print ("rename")
+        if self.DEBUG: print ("rename", old, new)
 
         #Rename in cache
         if os.path.exists (self.cache + old):
