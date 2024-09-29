@@ -45,13 +45,14 @@ I plan to fix many of these limitations in later versions of the program, but un
 - No file permissions checks supported, that is considered out of scope
 
 ## Bugs
-Here is a list of all currently known bugs, prioritized by functionality impact.
+Here is a list of all currently known bugs and issues, prioritized by functionality impact.
 
 ### Critical
 These bugs will be fixed in the next patch release.
 
 ### Important
 These bugs will either be fixed in the next patch release or minor release.
+- Renaming of files in GUI (such as Nautilus) is not supported
 
 ### Other
 These bugs will be fixed whenever there is time, but most likely in a future minor release.
