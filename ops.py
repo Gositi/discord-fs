@@ -25,9 +25,10 @@ class Ops:
         client = dc.Bot (intents = discord.Intents.default ())
         self.sq = queue.Queue ()
         self.rq = queue.Queue ()
-        self.lock = threading.Event ()
+        self.lock = threading.Lock ()
+        self.done = threading.Event ()
         self.ready = threading.Event ()
-        client.stp (channel, self.sq, self.rq, self.lock, self.ready, cache, temp)
+        client.stp (channel, self.sq, self.rq, self.lock, self.done, self.ready, cache, temp)
 
         if DEBUG:
             self.t = threading.Thread (target = client.run, args=(token,))
@@ -35,13 +36,12 @@ class Ops:
             self.t = threading.Thread (target = client.run, args=(token,), kwargs={"log_handler": None})
 
         self.t.daemon = True
+        self.done.clear ()
         self.ready.clear ()
         self.t.start ()
 
         #Wait for ready
-        if self.ready.wait (timeout = 10):
-            print ("Bot ready.")
-        else:
+        if not self.ready.wait (timeout = 10):
             raise Exception ("Discord bot did not start properly.")
 
     #
@@ -51,13 +51,14 @@ class Ops:
     #Download files at specified message IDs
     def _download (self, msgIDs, name):
         #Download files
-        self.lock.wait ()
-        self.lock.clear ()
+        self.lock.acquire ()
         if self.DEBUG: print ("begin download", name)
         self.sq.put ({"task": "download", "id": msgIDs, "name": name})
-        self.lock.wait ()
+        self.done.wait ()
+        self.done.clear ()
         if self.DEBUG: print ("finish download", name)
         filenames = self.rq.get ()
+        self.lock.release ()
 
         #Join files
         with open (self.cache + name, "w") as f:
@@ -87,11 +88,12 @@ class Ops:
         if self.DEBUG: print ("begin upload", name)
         for subnames in [names [i : i + batchSize] for i in range (0, len (names), batchSize)]:
             if self.DEBUG: print ("batch", subnames) 
-            self.lock.wait ()
-            self.lock.clear ()
+            self.lock.acquire ()
             self.sq.put ({"task": "upload", "names": subnames})
-            self.lock.wait ()
+            self.done.wait ()
+            self.done.clear ()
             messages.append (self.rq.get ())
+            self.lock.release ()
         if self.DEBUG: print ("finish upload", name)
 
         #Remove trace files
@@ -101,10 +103,11 @@ class Ops:
 
     #Remove specified message IDs
     def _remove (self, msgIDs):
-        self.lock.wait ()
-        self.lock.clear ()
+        self.lock.acquire ()
         self.sq.put ({"task": "delete", "id": msgIDs})
-        self.lock.wait ()
+        self.done.wait ()
+        self.done.clear ()
+        self.lock.release ()
 
     #
     #   FS functions

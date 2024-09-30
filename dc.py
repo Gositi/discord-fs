@@ -6,11 +6,12 @@ import discord
 
 class Bot (discord.Client):
     #Basic setup (passing arguments to bot)
-    def stp (self, channelID, sq, rq, lock, ready, cache, temp):
+    def stp (self, channelID, sq, rq, lock, done, ready, cache, temp):
         self.channelID = channelID
         self.sq = sq
         self.rq = rq
         self.lock = lock
+        self.done = done
         self.ready = ready
         self.cache = cache
         self.temp = temp
@@ -25,10 +26,13 @@ class Bot (discord.Client):
             print ("The filesystem channel does not exist. Make sure that the config file has proper data.")
             return
 
-        self.lock.set ()
-        self.ready.set () #Signal the bot is ready
+        #Signal the bot is ready
+        self.ready.set ()
+        print ("Bot ready.")
+
+        #Get first task
         if self.task == None:
-            self.task = self.sq.get () #Get first task
+            self.task = self.sq.get ()
 
         #Main loop
         while self.task ["task"] != "exit":
@@ -44,7 +48,8 @@ class Bot (discord.Client):
                 pass
 
             #Finish and get next task
-            self.lock.set ()
+            self.task = None
+            self.done.set ()
             self.task = self.sq.get ()
 
         #Signal bot ready for shutdown
