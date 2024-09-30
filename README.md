@@ -63,11 +63,10 @@ Below is how I currently plan on going forward with the project.
 - Fix bugs or minor issues as they appear
 
 ### Next minor release (dev branch)
-- Implement directories
+- Encryption of files (with obfuscation of filenames) and file integrity verification
 
 ### Future minor releases
-- Encryption of files (and obfuscation of filenames)
-- File integrity verification
+- Implement directories
 - Cache files for a short while after closing them to save time on up- and downloads
 
 ### Ideas for future major releases
