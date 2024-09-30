@@ -16,6 +16,7 @@ class Ops:
     def __init__(self, DEBUG, temp, cache, channel, token, fatfile):
         self.temp = temp
         self.cache = cache
+        self.DEBUG = DEBUG
 
         #Load FAT handler
         self.fat = fat.Fat (fatfile)
@@ -52,8 +53,10 @@ class Ops:
         #Download files
         self.lock.wait ()
         self.lock.clear ()
+        if self.DEBUG: print ("begin download", name)
         self.sq.put ({"task": "download", "id": msgIDs, "name": name})
         self.lock.wait ()
+        if self.DEBUG: print ("finish download", name)
         filenames = self.rq.get ()
 
         #Join files
@@ -81,12 +84,15 @@ class Ops:
         #Upload files
         messages = []
         batchSize = 10 #Discord message filecount limit
+        if self.DEBUG: print ("begin upload", name)
         for subnames in [names [i : i + batchSize] for i in range (0, len (names), batchSize)]:
+            if self.DEBUG: print ("batch", subnames) 
             self.lock.wait ()
             self.lock.clear ()
             self.sq.put ({"task": "upload", "names": subnames})
             self.lock.wait ()
             messages.append (self.rq.get ())
+        if self.DEBUG: print ("finish upload", name)
 
         #Remove trace files
         subprocess.run (["rm"] + [self.temp + name for name in names])

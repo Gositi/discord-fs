@@ -116,16 +116,12 @@ class Filesystem (fuse.Operations):
 
     #Read data from file
     def read (self, path, length, offset, fh):
-        if self.DEBUG: print ("read", path)
-
         os.lseek (fh, offset, os.SEEK_SET)
         self.list [path][2] = True
         return os.read (fh, length)
 
     #Write data to file
     def write (self, path, buf, offset, fh):
-        if self.DEBUG: print ("write", path)
-
         os.lseek (fh, offset, os.SEEK_SET)
         self.list [path][1] = True
         return os.write (fh, buf)
