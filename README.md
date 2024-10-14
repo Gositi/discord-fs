@@ -63,9 +63,10 @@ Below is how I currently plan on going forward with the project.
 - Fix bugs or minor issues as they appear
 
 ### Next minor release (dev branch)
-- Encryption of files (with obfuscation of filenames) and file integrity verification
+- Use Discord's API directly instead of going through the discord.py library.
 
 ### Future minor releases
+- Encryption of files (with obfuscation of filenames) and file integrity verification
 - Implement directories
 - Cache files for a short while after closing them to save time on up- and downloads
 
