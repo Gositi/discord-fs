@@ -30,7 +30,7 @@ If the file is not present it will be created at runtime and you will be prompte
 The data (in default order) which you need to fill in is the following:
 - `token` - Bot token (string): The Discord bot token
 - `mount` - Mountpoint (string/path): Absolute or relative path to the filesystem mountpoint, `./mnt/` by default
-- `channel` - Filesystem channel (integer): The ID of the channel the filesystem operates in
+- `channel` - Filesystem channel (string): The ID of the channel the filesystem operates in
 
 ### Limitations
 I plan to fix many of these limitations in later versions of the program, but until then it is good if you know about them.
@@ -51,7 +51,6 @@ These bugs will either be fixed in the next patch release or minor release.
 
 ### Other
 These bugs will be fixed whenever there is time, but most likely in a future minor release.
-- Copies of files in the FS channel that is unknown to the program may occur under very special conditions
 
 ## Roadmap
 Updated versions of this program will be released continuously (whenever I decide to work on it).
@@ -63,10 +62,9 @@ Below is how I currently plan on going forward with the project.
 - Fix bugs or minor issues as they appear
 
 ### Next minor release (dev branch)
-- Use Discord's API directly instead of going through the discord.py library.
+- Encryption of files (with obfuscation of filenames) and file integrity verification
 
 ### Future minor releases
-- Encryption of files (with obfuscation of filenames) and file integrity verification
 - Implement directories
 - Cache files for a short while after closing them to save time on up- and downloads
 

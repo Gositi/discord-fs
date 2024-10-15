@@ -1,2 +1,2 @@
 fusepy
-discord.py
+requests

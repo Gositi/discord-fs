@@ -2,13 +2,11 @@
 #Copyright (C) 2024 Simon Bryntse
 #License (GPL 3.0) provided in file 'LICENSE'
 
-import dc
+import api
 import fat
 import os
-import discord
 import json
 import threading
-import queue
 import subprocess
 import glob
 
@@ -21,28 +19,9 @@ class Ops:
         #Load FAT handler
         self.fat = fat.Fat (fatfile)
 
-        #Setup bot
-        client = dc.Bot (intents = discord.Intents.default ())
-        self.sq = queue.Queue ()
-        self.rq = queue.Queue ()
+        #Setup Discord API connection
         self.lock = threading.Lock ()
-        self.done = threading.Event ()
-        self.ready = threading.Event ()
-        client.stp (channel, self.sq, self.rq, self.lock, self.done, self.ready, cache, temp)
-
-        if DEBUG:
-            self.t = threading.Thread (target = client.run, args=(token,))
-        else:
-            self.t = threading.Thread (target = client.run, args=(token,), kwargs={"log_handler": None})
-
-        self.t.daemon = True
-        self.done.clear ()
-        self.ready.clear ()
-        self.t.start ()
-
-        #Wait for ready
-        if not self.ready.wait (timeout = 10):
-            raise Exception ("Discord bot did not start properly.")
+        self.discord = api.API (self.DEBUG, channel, token, self.lock, self.cache, self.temp)
 
     #
     #   Bot interface
@@ -53,11 +32,8 @@ class Ops:
         #Download files
         self.lock.acquire ()
         if self.DEBUG: print ("begin download", name)
-        self.sq.put ({"task": "download", "id": msgIDs, "name": name})
-        self.done.wait ()
-        self.done.clear ()
+        filenames = self.discord.download (msgIDs, name)
         if self.DEBUG: print ("finish download", name)
-        filenames = self.rq.get ()
         self.lock.release ()
 
         #Join files
@@ -89,10 +65,7 @@ class Ops:
         for subnames in [names [i : i + batchSize] for i in range (0, len (names), batchSize)]:
             if self.DEBUG: print ("batch", subnames) 
             self.lock.acquire ()
-            self.sq.put ({"task": "upload", "names": subnames})
-            self.done.wait ()
-            self.done.clear ()
-            messages.append (self.rq.get ())
+            messages.append (self.discord.upload (subnames))
             self.lock.release ()
         if self.DEBUG: print ("finish upload", name)
 
@@ -104,9 +77,7 @@ class Ops:
     #Remove specified message IDs
     def _remove (self, msgIDs):
         self.lock.acquire ()
-        self.sq.put ({"task": "delete", "id": msgIDs})
-        self.done.wait ()
-        self.done.clear ()
+        self.discord.delete (msgIDs)
         self.lock.release ()
 
     #
@@ -178,8 +149,6 @@ class Ops:
 
     #Shut down bot, exit
     def exit (self):
-        self.ready.clear ()
-        self.sq.put ({"task": "exit"})
-        self.ready.wait ()
+        self.lock.acquire ()
         print ("Bot closed.")
 
