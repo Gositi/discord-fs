@@ -12,10 +12,26 @@ import subprocess
 import json
 
 #Spin up the system
-def main():
-    #DEBUG = False
-    DEBUG = True
+def main(DEBUG = False):
     if DEBUG: print ("Debug mode on.")
+
+    print ("""
+    Discord-fs (dc-fs): Discord as cloud storage, in your filesystem.
+    Copyright (C) 2024  Simon Bryntse
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+    """)
 
     print ("Startup.")
 
@@ -99,4 +115,4 @@ def main():
     print ("Exit.")
 
 if __name__ == '__main__':
-    main()
+    main(DEBUG=True)

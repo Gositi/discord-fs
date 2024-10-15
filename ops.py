@@ -150,5 +150,4 @@ class Ops:
     #Shut down bot, exit
     def exit (self):
         self.lock.acquire ()
-        print ("Bot closed.")
 
