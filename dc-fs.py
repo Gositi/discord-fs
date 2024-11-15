@@ -115,4 +115,4 @@ def main(DEBUG = False):
     print ("Exit.")
 
 if __name__ == '__main__':
-    main(DEBUG=True)
+    main()
