@@ -12,7 +12,9 @@ import subprocess
 import json
 
 #Spin up the system
-def main():
+def main(DEBUG = False):
+    if DEBUG: print ("Debug mode on.")
+
     print ("""
     Discord-fs (dc-fs): Discord as cloud storage, in your filesystem.
     Copyright (C) 2024  Simon Bryntse
@@ -30,6 +32,7 @@ def main():
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
     """)
+
     print ("Startup.")
 
     #Load FAT to access configs
@@ -99,8 +102,8 @@ def main():
     os.mkdir (temp)
 
     #Spin up system
-    files = ops.Ops (temp, cache, channel, token, "./fat.json")
-    fuse.FUSE (fs.Filesystem (files, cache), mount, nothreads = True, foreground = True, allow_other = False)
+    files = ops.Ops (DEBUG, temp, cache, channel, token, "./fat.json")
+    fuse.FUSE (fs.Filesystem (DEBUG, files, cache), mount, nothreads = True, foreground = True, allow_other = False)
 
     #Gracefully shut down after unmount
     files.exit ()
@@ -112,4 +115,4 @@ def main():
     print ("Exit.")
 
 if __name__ == '__main__':
-    main()
+    main(DEBUG=True)
