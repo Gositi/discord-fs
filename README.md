@@ -65,8 +65,11 @@ Below is how I currently plan on going forward with the project.
 - Encryption of files (with obfuscation of filenames) and file integrity verification
 
 ### Future minor releases
+- Increase performance
+    - Only download the parts of files that are actually being used
+    - Asynchronous file uploads
+    - Some caching of files (or file segments) after closing them
 - Implement directories
-- Cache files for a short while after closing them to save time on up- and downloads
 
 ### Ideas for future major releases
 - Asynchronized filesystem operations
