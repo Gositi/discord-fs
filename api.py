@@ -2,6 +2,7 @@
 
 import json
 import requests as rq
+import time
 
 #TODO: Find a good implementation using concurrent downloads
 
@@ -18,20 +19,30 @@ class API:
         files = []
         i = 0
         for message in messages:
-            r = rq.get (self.url + "/" + str (message), headers=self.headers)
-
-            if not r.status_code == 200:
-                if self.DEBUG: print (r.text)
-                raise RuntimeError ("File download failed. An error WILL occur because of this.")
-
-            for attach in r.json ()["attachments"]:
-                with open (self.temp + name + str (i), "wb") as f:
-                    for chunk in rq.get (attach["url"]).iter_content (1024**2):
-                        f.write (chunk)
-                files.append (self.temp + name + str (i))
-                i += 1
+            i = self._downloadMessage (message, name, files, i)
 
         return files
+
+    #Download a single message, moved to its own function to better handle rate limiting
+    def _downloadMessage (self, message, name, files, i):
+        r = rq.get (self.url + "/" + str (message), headers=self.headers)
+
+        if r.status_code != 200:
+            if self.DEBUG: print (r.status_code, r.text)
+            if r.status_code == 429:
+                time.sleep (r.json ()["retry_after"])
+                return self._downloadMessage (message, name, files, i)
+            else:
+                raise RuntimeError ("File download failed. An error WILL occur because of this.")
+
+        for attach in r.json ()["attachments"]:
+            with open (self.temp + name + str (i), "wb") as f:
+                for chunk in rq.get (attach["url"]).iter_content (1024**2):
+                    f.write (chunk)
+            files.append (self.temp + name + str (i))
+            i += 1
+
+        return i
 
     #Upload files
     def upload (self, names):
@@ -41,9 +52,13 @@ class API:
 
         for f in files.values (): f.close ()
 
-        if not r.status_code == 200:
-            if self.DEBUG: print (r.text)
-            raise RuntimeError ("File upload failed. An error WILL occur because of this.")
+        if r.status_code != 200:
+            if self.DEBUG: print (r.status_code, r.text)
+            if r.status_code == 429:
+                time.sleep (r.json ()["retry_after"])
+                return self.upload (names)
+            else:
+                raise RuntimeError ("File upload failed. An error WILL occur because of this.")
 
         return r.json ()["id"]
 
@@ -52,6 +67,8 @@ class API:
         for message in messages:
             r = rq.delete (self.url + "/" + str (message), headers=self.headers)
 
-            if self.DEBUG and not r.status_code == 200:
-                print (r.text)
-
+            if r.status_code != 200:
+                if self.DEBUG: print (r.status_code, r.text)
+                if r.status_code == 429:
+                    time.sleep (r.json ()["retry_after"])
+                    self.delete ([message])

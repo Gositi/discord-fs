@@ -1,15 +1,16 @@
 #!/usr/bin/env python3
 
 #Discord-fs, uses Discord as cloud storage accessed through a filesystem
-#Copyright (C) 2024 Simon Bryntse
+#Copyright (C) 2024-2025 Gositi
 #License (GPL 3.0) provided in file 'LICENSE'
 
-import fs, ops
+import fs, fat, api
 import fuse
 import sys
 import os
 import subprocess
 import json
+import threading
 
 #Spin up the system
 def main(DEBUG = False):
@@ -39,17 +40,17 @@ def main(DEBUG = False):
     if os.path.exists ("fat.json"):
         #Load data
         with open ("fat.json", "r") as f:
-            fat = json.load (f)
+            fatData = json.load (f)
 
         #Read config from FAT "header"
-        token = fat ["token"]
-        mount = fat ["mount"]
-        channel = fat ["channel"]
+        token = fatData ["token"]
+        mount = fatData ["mount"]
+        channel = fatData ["channel"]
         
     #Write FAT with defaults
     else:
         #Default FAT
-        fat = {
+        fatData = {
             "version": 0,
             "token": "BOT TOKEN",
             "mount": "./mnt/",
@@ -63,7 +64,7 @@ def main(DEBUG = False):
 
         #Write data
         with open ("fat.json", "w") as f:
-            json.dump (fat, f, indent = 4)
+            json.dump (fatData, f, indent = 4)
 
         #Tell user to fill in neccessary fields
         printString = """
@@ -102,11 +103,14 @@ def main(DEBUG = False):
     os.mkdir (temp)
 
     #Spin up system
-    files = ops.Ops (DEBUG, temp, cache, channel, token, "./fat.json")
-    fuse.FUSE (fs.Filesystem (DEBUG, files, cache), mount, nothreads = True, foreground = True, allow_other = False)
+    lock = threading.Lock ()
+    discord = api.API (DEBUG, channel, token, lock, cache, temp)
+    files = fat.Fat (DEBUG, "./fat.json", temp, cache, lock, discord)
+    fuse.FUSE (fs.Filesystem (DEBUG, cache, files), mount, nothreads = True, foreground = True, allow_other = False)
 
-    #Gracefully shut down after unmount
-    files.exit ()
+    #Gracefully destroy system
+    lock.acquire ()
+    files.write ()
 
     #Remove cache and temp directories
     subprocess.run (["rm", "-r", cache])
