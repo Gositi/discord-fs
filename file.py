@@ -7,13 +7,19 @@ import os
 import json
 import subprocess
 import glob
+from cryptography.fernet import Fernet
+import base64
 
 class File:
-    def __init__ (self, DEBUG, path, uuid, temp, cache, msgIDs, lock, discord):
+    def __init__ (self, DEBUG, path, uuid, key, temp, cache, msgIDs, lock, discord):
         self.DEBUG = DEBUG
 
         self.path = path
         self.uuid = uuid
+        if key:
+            self.key = bytes (key, "ASCII")
+        else:
+            self.key = None
 
         self.temp = temp
         self.cache = cache
@@ -42,15 +48,27 @@ class File:
 
             if filenames:
                 #Join files
-                with open (self.cache + self.uuid, "w") as f:
+                with open (self.temp + self.uuid, "w") as f:
                     subprocess.run (["cat"] + filenames, stdout = f)
                 #Remove trace files after joining
                 subprocess.run (["rm"] + filenames)
             else:
-                subprocess.run (["touch", self.cache + self.uuid])
+                subprocess.run (["touch", self.temp + self.uuid])
 
             #Toggle flag
             self.downloaded = True
+
+        #Decrypt if a key is stored
+        if self.key:
+            fernet = Fernet (self.key)
+            with open (self.temp + self.uuid, "rb") as f:
+                encrypted = f.read ()
+            decrypted = fernet.decrypt (base64.b64encode (encrypted, altchars=b"-_"))
+            with open (self.cache + self.uuid, "wb") as f:
+                f.write (decrypted)
+            subprocess.run (["rm", self.temp + self.uuid])
+        else:
+            subprocess.run (["mv", self.temp + self.uuid, self.cache + self.uuid])
 
     #Upload the file to update Discord
     def _upload (self):
@@ -58,15 +76,27 @@ class File:
             #Nothing to upload
             return
         else:
+            #Create key if needed
+            if not self.key:
+                self.key = Fernet.generate_key ()
+            #Encrypt file
+            fernet = Fernet (self.key)
+            with open (self.cache + self.uuid, "rb") as f:
+                decrypted = f.read ()
+            encrypted = base64.b64decode (fernet.encrypt (decrypted), altchars=b"-_")
+            with open (self.temp + self.uuid, "wb") as f:
+                f.write (encrypted)
+
             #Split file
             maxSize = 10 * 1024 * 1024 #Discord file size limit
-            size = os.path.getsize (self.cache + self.uuid)
+            size = os.path.getsize (self.temp + self.uuid)
             if size == 0:
                 #Special case of split, has to be handled separately
-                subprocess.run (["cp", self.cache + self.uuid, self.temp + self.uuid + "0"])
+                subprocess.run (["cp", self.temp + self.uuid, self.temp + self.uuid + "0"])
             else:
                 #Regular file splitting
-                subprocess.run (["split", "-b", str (maxSize), "-d", self.cache + self.uuid, self.temp + self.uuid])
+                subprocess.run (["split", "-b", str (maxSize), "-d", self.temp + self.uuid, self.temp + self.uuid])
+            subprocess.run (["rm", self.temp + self.uuid])
 
             #Create array of filenames
             files = glob.glob (self.uuid + "*", root_dir = self.temp)

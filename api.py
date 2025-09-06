@@ -67,7 +67,7 @@ class API:
         for message in messages:
             r = rq.delete (self.url + "/" + str (message), headers=self.headers)
 
-            if r.status_code != 200:
+            if r.status_code not in [200, 204]:
                 if self.DEBUG: print (r.status_code, r.text)
                 if r.status_code == 429:
                     time.sleep (r.json ()["retry_after"])

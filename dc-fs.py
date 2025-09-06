@@ -51,7 +51,7 @@ def main(DEBUG = False):
     else:
         #Default FAT
         fatData = {
-            "version": 0,
+            "version": 1,
             "token": "BOT TOKEN",
             "mount": "./mnt/",
             "channel": 0,

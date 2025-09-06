@@ -29,6 +29,10 @@ class Fat:
         #Update message IDs
         for path, file in self.files.items ():
             self.fat ["fat"]["files"][file.path [1:]]["messages"] = file.msgIDs
+            if file.key:
+                self.fat ["fat"]["files"][file.path [1:]]["key"] = file.key.decode("ASCII")
+            else:
+                self.fat ["fat"]["files"][file.path [1:]]["key"] = None
         #Write FAT
         with open (self.fatFile, "w") as f:
             json.dump (self.fat, f, indent = 4)
@@ -46,13 +50,13 @@ class Fat:
         if path [1:] in self.getDir ("/"):
             raise RuntimeError ("File already exists") 
         else:
-            self.fat ["fat"]["files"][path [1:]] = {"messages": [], "metadata": {'st_atime': 0.0, 'st_ctime': 0.0, 'st_gid': 1000, 'st_mode': 33204, 'st_mtime': 0.0, 'st_nlink': 1, 'st_size': 0, 'st_uid': 1000}, "uuid": str(uuid.uuid4 ())}
+            self.fat ["fat"]["files"][path [1:]] = {"messages": [], "metadata": {'st_atime': 0.0, 'st_ctime': 0.0, 'st_gid': 1000, 'st_mode': 33204, 'st_mtime': 0.0, 'st_nlink': 1, 'st_size': 0, 'st_uid': 1000}, "uuid": str(uuid.uuid4 ()), "key": None}
 
     #Create the file object associated with a certain path
     def fetch (self, path):
         if not path in self.files:
             f = self.fat ["fat"]["files"][path [1:]]
-            self.files[path] = file.File (self.DEBUG, path, f["uuid"], self.temp, self.cache, f["messages"], self.lock, self.discord)
+            self.files[path] = file.File (self.DEBUG, path, f["uuid"], f["key"], self.temp, self.cache, f["messages"], self.lock, self.discord)
         return self.files[path]
 
     #Remove file (and return it)
