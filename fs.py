@@ -56,6 +56,7 @@ class Filesystem (fuse.Operations):
         if not times: times = (time.time (), time.time ())
         self.fat.changeMetadata (path, "st_atime", times [0])
         self.fat.changeMetadata (path, "st_mtime", times [1])
+        self.fat.changeMetadata (path, "st_ctime", time.time ())
         self.fat.write ()
 
     #Get directory listing
@@ -97,7 +98,7 @@ class Filesystem (fuse.Operations):
         atime = metadata ["st_atime"]
         mtime = metadata ["st_mtime"]
         if file.changed:
-        )mtime = time.time ()
+            mtime = time.time ()
         if file.read:
             atime = time.time ()
         self.utimens (path, times = (atime, mtime))
