@@ -8,15 +8,14 @@ You assign a channel, mount the filesystem and let the bot do the rest.
 Note that this is mainly an experimental program and not something made, or at least intended, to be used seriously.
 
 ## Usage
-First off, you'll need Linux to run this (with FUSE and a modern version of Python installed, should already be installed by default on most distros).
-The program is developed on Ubuntu 24.04 with Python 3.12 and the preinstalled libraries, but there are no guarantees the program will work on any system.
-If you have issues with it (on a Linux system) I will of course try and look into it anyways!
-
-Before using the program, you will need to do some setup.
-I will assume you are techy enough to do this yourself, so this will be in broad terms what to do.
-- Import libraries in `requirements.txt`
+You will need Linux to run this, or at least a system where FUSE is available.
+Before using the program you need to do some setup.
+I assume you are techy enough to do this yourself, so this will be in broad terms what to do:
+- Make sure a modern version of Python is installed
+- Make sure the package `python3-fuse` (in the case of the Ubuntu repos) is installed
+- Import libraries in `requirements.txt` using `pip install -r requirements.txt`
 - Create (or use) a discord bot for the FS
-- Fill in data in file `fat.json` (see below)
+- Fill in data in file `fat.json`, see below
 
 After this is done you should be good to go.
 The program is started by executing `dc-fs.py` with a modern Python version, and closing it should be done by unmounting the filesystem.
