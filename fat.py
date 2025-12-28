@@ -26,20 +26,28 @@ class Fat:
 
     #Write FAT to disk
     def write (self):
-        #Update message IDs
-        for path, file in self.files.items ():
-            self.fat ["fat"]["files"][file.path [1:]]["messages"] = file.msgIDs
-            if file.key:
-                self.fat ["fat"]["files"][file.path [1:]]["key"] = file.key.decode("ASCII")
-            else:
-                self.fat ["fat"]["files"][file.path [1:]]["key"] = None
-        #Write FAT
         with open (self.fatFile, "w") as f:
             json.dump (self.fat, f, indent = 4)
 
-    #Sync file between FAT and list
+    #Sync file to FAT file
     def sync (self, path):
-        if path in self.files: self.fat ["fat"]["files"][path [1:]]["messages"] = self.files[path].msgIDs
+        if path in self.files:
+            self._sync (path, self.files [path])
+            self.write ()
+
+    #Sync every file
+    def syncAll (self):
+        for path, file in self.files.items ():
+            self._sync (path, file)
+        self.write ()
+
+    #Actually sync a file to the FAT dictionary
+    def _sync (self, path, file):
+        self.fat ["fat"]["files"][path [1:]]["messages"] = file.msgIDs
+        if file.key:
+            self.fat ["fat"]["files"][path [1:]]["key"] = file.key.decode("ASCII")
+        else:
+            self.fat ["fat"]["files"][path [1:]]["key"] = None
 
     #Check if a path exists
     def exists (self, path):

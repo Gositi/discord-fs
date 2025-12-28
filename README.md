@@ -61,7 +61,9 @@ Below is how I currently plan on going forward with the project.
 - Fix bugs or minor issues as they appear
 
 ### Next minor release (dev branch)
-- Encryption of files (with obfuscation of filenames) and file integrity verification
+- Encryption of files
+- Obfuscation of filenames
+- File integrity verification
 
 ### Future minor releases
 - Increase performance

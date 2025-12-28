@@ -40,6 +40,7 @@ class Filesystem (fuse.Operations):
         if self.DEBUG: print ("chmod", path)
         self.fat.changeMetadata (path, "st_mode", mode)
         self.fat.changeMetadata (path, "st_ctime", time.time ())
+        self.fat.write ()
 
     #Change owner of a file
     def chown (self, path, uid, gid):
@@ -47,6 +48,7 @@ class Filesystem (fuse.Operations):
         self.fat.changeMetadata (path, "st_uid", uid)
         self.fat.changeMetadata (path, "st_gid", gid)
         self.fat.changeMetadata (path, "st_ctime", time.time ())
+        self.fat.write ()
 
     #Change timestamps of a file
     def utimens (self, path, times = None):
@@ -54,6 +56,7 @@ class Filesystem (fuse.Operations):
         if not times: times = (time.time (), time.time ())
         self.fat.changeMetadata (path, "st_atime", times [0])
         self.fat.changeMetadata (path, "st_mtime", times [1])
+        self.fat.write ()
 
     #Get directory listing
     def readdir (self, path, fp):
@@ -67,6 +70,7 @@ class Filesystem (fuse.Operations):
         if self.DEBUG: print ("unlink", path)
         self.fat.fetch(path).delete ()
         self.fat.removeFile (path)
+        self.fat.write ()
 
     #Opening of file
     def open (self, path, flags):
@@ -93,7 +97,7 @@ class Filesystem (fuse.Operations):
         atime = metadata ["st_atime"]
         mtime = metadata ["st_mtime"]
         if file.changed:
-            mtime = time.time ()
+        )mtime = time.time ()
         if file.read:
             atime = time.time ()
         self.utimens (path, times = (atime, mtime))
@@ -152,3 +156,4 @@ class Filesystem (fuse.Operations):
         if self.DEBUG: print ("rename", old, new)
         self.fat.rename (old, new)
         self.fat.changeMetadata (new, "st_ctime", time.time ())
+        self.fat.write ()

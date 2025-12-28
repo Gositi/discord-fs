@@ -110,7 +110,7 @@ def main(DEBUG = False):
 
     #Gracefully destroy system
     lock.acquire ()
-    files.write ()
+    files.syncAll ()
 
     #Remove cache and temp directories
     subprocess.run (["rm", "-r", cache])
