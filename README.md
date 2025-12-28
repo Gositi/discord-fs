@@ -76,7 +76,7 @@ Below is how I currently plan on going forward with the project.
 - Multiple clients connected to the same filesystem
 
 ## Legal
-Copyright (C) 2024 Simon Bryntse
+Copyright (C) 2024-2025 Gositi
 
 License (GPL 3.0) provided in file `LICENSE`
 

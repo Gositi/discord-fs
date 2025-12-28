@@ -18,7 +18,7 @@ def main(DEBUG = False):
 
     print ("""
     Discord-fs (dc-fs): Discord as cloud storage, in your filesystem.
-    Copyright (C) 2024  Simon Bryntse
+    Copyright (C) 2024-2025  Gositi
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
