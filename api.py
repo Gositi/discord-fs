@@ -33,7 +33,7 @@ class API:
                 time.sleep (r.json ()["retry_after"])
                 return self._downloadMessage (message, name, files, i)
             else:
-                raise RuntimeError ("File download failed. An error WILL occur because of this.")
+                raise RuntimeError (f"File download failed with code {r.status_code}. An error WILL occur because of this.")
 
         for attach in r.json ()["attachments"]:
             with open (self.temp + name + str (i), "wb") as f:
@@ -58,7 +58,7 @@ class API:
                 time.sleep (r.json ()["retry_after"])
                 return self.upload (names)
             else:
-                raise RuntimeError ("File upload failed. An error WILL occur because of this.")
+                raise RuntimeError (f"File upload failed with code {r.status_code}. An error WILL occur because of this.")
 
         return r.json ()["id"]
 
@@ -72,3 +72,5 @@ class API:
                 if r.status_code == 429:
                     time.sleep (r.json ()["retry_after"])
                     self.delete ([message])
+                else:
+                    raise RuntimeError (f"File deletion failed with code {r.status_code}, the message ID {message} therefore remains on Discord.")
