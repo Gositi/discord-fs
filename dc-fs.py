@@ -90,14 +90,18 @@ def main(DEBUG = False):
     if mount [-1] != "/":
         mount += "/"
 
+    #Need to get this for some godawful reason that I don't understand
+    #TODO Figure out why the cwd randomly is set to root
+    baseDir = os.getcwd ()
+
     #Create/clean cache dir
-    cache = "./.dcfscache/"
+    cache = baseDir + "/.dcfscache/"
     if os.path.isdir (cache):
         subprocess.run (["rm", "-r", cache])
     os.mkdir (cache)
 
     #Create/clean temp dir
-    temp = "./.dcfstmp/"
+    temp = baseDir + "/.dcfstmp/"
     if os.path.isdir (temp):
         subprocess.run (["rm", "-r", temp])
     os.mkdir (temp)
@@ -105,7 +109,7 @@ def main(DEBUG = False):
     #Spin up system
     lock = threading.Lock ()
     discord = api.API (DEBUG, channel, token, lock, cache, temp)
-    files = fat.Fat (DEBUG, "./fat.json", temp, cache, lock, discord)
+    files = fat.Fat (DEBUG, baseDir + "/fat.json", temp, cache, lock, discord)
     fuse.FUSE (fs.Filesystem (DEBUG, cache, files), mount, nothreads = True, foreground = True, allow_other = False)
 
     #Gracefully destroy system
