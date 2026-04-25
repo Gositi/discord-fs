@@ -12,7 +12,7 @@ You will need Linux to run this, or at least a system where FUSE is available.
 Before using the program you need to do some setup.
 I assume you are techy enough to do this yourself, so this will be in broad terms what to do:
 - Make sure a modern version of Python is installed
-- Make sure the package `python3-fuse` (in the case of the Ubuntu repos) is installed
+- Make sure that `fuse3` (in the case of the Ubuntu repos) is installed
 - Import libraries in `requirements.txt` using `pip install -r requirements.txt`
 - Create (or use) a discord bot for the FS
 - Fill in data in file `fat.json`, see below
