@@ -1,15 +1,16 @@
 #!/usr/bin/env python3
 
 #Discord-fs, uses Discord as cloud storage accessed through a filesystem
-#Copyright (C) 2024 Simon Bryntse
+#Copyright (C) 2024-2026 Gositi
 #License (GPL 3.0) provided in file 'LICENSE'
 
-import fs, ops
-import fuse
+import fs, fat, api
+import mfusepy as fuse
 import sys
 import os
 import subprocess
 import json
+import threading
 
 #Spin up the system
 def main(DEBUG = False):
@@ -17,7 +18,7 @@ def main(DEBUG = False):
 
     print ("""
     Discord-fs (dc-fs): Discord as cloud storage, in your filesystem.
-    Copyright (C) 2024  Simon Bryntse
+    Copyright (C) 2024-2026  Gositi
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -39,18 +40,18 @@ def main(DEBUG = False):
     if os.path.exists ("fat.json"):
         #Load data
         with open ("fat.json", "r") as f:
-            fat = json.load (f)
+            fatData = json.load (f)
 
         #Read config from FAT "header"
-        token = fat ["token"]
-        mount = fat ["mount"]
-        channel = fat ["channel"]
+        token = fatData ["token"]
+        mount = fatData ["mount"]
+        channel = fatData ["channel"]
         
     #Write FAT with defaults
     else:
         #Default FAT
-        fat = {
-            "version": 0,
+        fatData = {
+            "version": 1,
             "token": "BOT TOKEN",
             "mount": "./mnt/",
             "channel": 0,
@@ -63,7 +64,7 @@ def main(DEBUG = False):
 
         #Write data
         with open ("fat.json", "w") as f:
-            json.dump (fat, f, indent = 4)
+            json.dump (fatData, f, indent = 4)
 
         #Tell user to fill in neccessary fields
         printString = """
@@ -89,24 +90,31 @@ def main(DEBUG = False):
     if mount [-1] != "/":
         mount += "/"
 
+    #Need to get this for some godawful reason that I don't understand
+    #TODO Figure out why the cwd randomly is set to root
+    baseDir = os.getcwd ()
+
     #Create/clean cache dir
-    cache = "./.dcfscache/"
+    cache = baseDir + "/.dcfscache/"
     if os.path.isdir (cache):
         subprocess.run (["rm", "-r", cache])
     os.mkdir (cache)
 
     #Create/clean temp dir
-    temp = "./.dcfstmp/"
+    temp = baseDir + "/.dcfstmp/"
     if os.path.isdir (temp):
         subprocess.run (["rm", "-r", temp])
     os.mkdir (temp)
 
     #Spin up system
-    files = ops.Ops (DEBUG, temp, cache, channel, token, "./fat.json")
-    fuse.FUSE (fs.Filesystem (DEBUG, files, cache), mount, nothreads = True, foreground = True, allow_other = False)
+    lock = threading.Lock ()
+    discord = api.API (DEBUG, channel, token, lock, cache, temp)
+    files = fat.Fat (DEBUG, baseDir + "/fat.json", temp, cache, lock, discord)
+    fuse.FUSE (fs.Filesystem (DEBUG, cache, files), mount, nothreads = True, foreground = True, allow_other = False)
 
-    #Gracefully shut down after unmount
-    files.exit ()
+    #Gracefully destroy system
+    lock.acquire ()
+    files.syncAll ()
 
     #Remove cache and temp directories
     subprocess.run (["rm", "-r", cache])
@@ -115,4 +123,4 @@ def main(DEBUG = False):
     print ("Exit.")
 
 if __name__ == '__main__':
-    main()
+    main (DEBUG = True)

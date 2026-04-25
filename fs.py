@@ -1,22 +1,20 @@
 #Provides class for FUSE filesystem functionality
-#Copyright (C) 2024 Simon Bryntse
+#Copyright (C) 2024-2026 Gositi
 #License (GPL 3.0) provided in file 'LICENSE'
-
-#Derived from https://github.com/skorokithakis/python-fuse-sample
-#Copyright (C) 2016 Stavros Korokithakis
-#License (BSD-2-Clause) provided in file 'LICENSE-2'
 
 import os
 import errno
-import fuse
+import mfusepy as fuse
 import time
 
 class Filesystem (fuse.Operations):
-    def __init__ (self, DEBUG, ops, cache):
+    def __init__ (self, DEBUG, cache, fat):
+        self.use_ns = True
         self.DEBUG = DEBUG
-        self.ops = ops
+
         self.cache = cache
-        self.list = {}
+        self.fat = fat
+
         print ("FS ready.")
 
     #Function ran at unmount
@@ -25,63 +23,57 @@ class Filesystem (fuse.Operations):
 
     #Get basic filesystem info
     def statfs (self, path):
-        return {"f_namemax": 128} #Only return namemax, in order to make renaming files in GUI possible
+        return {"f_namemax": 128}   #Make renaming files in GUI possible
 
     #Get basic file attributes
     def getattr (self, path, fh=None):
-        if not self.ops.exists (path):
+        if not self.fat.exists (path):
             raise OSError (errno.ENOENT, "File does not exist")
         else:
-            return self.ops.getMetadata (path)
+            return self.fat.getMetadata (path)
 
     #Change mode of file
-    def chmod (self, path, mode):
+    def chmod (self, path, mode, fh=None):
         if self.DEBUG: print ("chmod", path)
-
-        self.ops.changeMetadata (path, "st_mode", mode)
-        self.ops.changeMetadata (path, "st_ctime", time.time ())
+        self.fat.changeMetadata (path, "st_mode", mode)
+        self.fat.changeMetadata (path, "st_ctime", time.time_ns ())
+        self.fat.write ()
 
     #Change owner of a file
-    def chown (self, path, uid, gid):
+    def chown (self, path, uid, gid, fh=None):
         if self.DEBUG: print ("chown", path)
-
-        self.ops.changeMetadata (path, "st_uid", uid)
-        self.ops.changeMetadata (path, "st_gid", gid)
-        self.ops.changeMetadata (path, "st_ctime", time.time ())
+        self.fat.changeMetadata (path, "st_uid", uid)
+        self.fat.changeMetadata (path, "st_gid", gid)
+        self.fat.changeMetadata (path, "st_ctime", time.time_ns ())
+        self.fat.write ()
 
     #Change timestamps of a file
-    def utimens (self, path, times = None):
+    def utimens (self, path, times = None, fh=None):
         if self.DEBUG:  print ("utimens", path)
-
-        if not times:
-            times = (time.time (), time.time ())
-        self.ops.changeMetadata (path, "st_atime", times [0])
-        self.ops.changeMetadata (path, "st_mtime", times [1])
+        if not times: times = (time.time_ns (), time.time_ns ())
+        self.fat.changeMetadata (path, "st_atime", times [0])
+        self.fat.changeMetadata (path, "st_mtime", times [1])
+        self.fat.changeMetadata (path, "st_ctime", time.time_ns ())
+        self.fat.write ()
 
     #Get directory listing
     def readdir (self, path, fh):
         dirents = ['.', '..']
-        dirents.extend (self.ops.readdir (path))
+        dirents.extend (self.fat.getDir (path))
         for i in dirents:
             yield i
 
     #Remove file
     def unlink (self, path):
         if self.DEBUG: print ("unlink", path)
-
-        self.ops.remove (path)
-        if os.path.exists (self.cache + path):
-            os.unlink (self.cache + path)
+        self.fat.fetch(path).delete ()
+        self.fat.removeFile (path)
+        self.fat.write ()
 
     #Opening of file
     def open (self, path, flags):
         if self.DEBUG: print ("open", path)
-
-        self.ops.open (path)
-        if not path in self.list.keys ():
-            self.list [path] = [0, False, False]
-        self.list [path][0] += 1
-        return os.open (self.cache + path, flags)
+        return self.fat.fetch(path).open (flags)
     
     #Write buffered file contents to the actual file
     def flush (self, path, fh):
@@ -93,75 +85,73 @@ class Filesystem (fuse.Operations):
 
     #Close file
     def release (self, path, fh):
-        if self.DEBUG: print ("release", path)
+        if self.DEBUG: print ("release (close)", path)
 
-        #Close file
+        file = self.fat.fetch(path)
+        #Close cached file
         ret = os.close (fh)
-        self.list [path][0] -= 1
-        #Update timestamps accordingly
-        metadata = self.ops.getMetadata (path)
+        #Update timestamps and filesize
+        metadata = self.fat.getMetadata (path)
         atime = metadata ["st_atime"]
         mtime = metadata ["st_mtime"]
-        if self.list [path][1]:
-            mtime = time.time ()
-        if self.list [path][2]:
-            atime = time.time ()
+        if file.changed:
+            mtime = time.time_ns ()
+        if file.read:
+            atime = time.time_ns ()
         self.utimens (path, times = (atime, mtime))
-        #Remove file from cache if it isn't used anymore
-        if self.list [path][0] <= 0:
-            if self.list [path][1]: self.ops.close (path)   #Write to Discord if file has been written
-            self.list.pop (path)
-            os.unlink (self.cache + path)
+        self.fat.changeMetadata (path, "st_size", os.path.getsize (self.cache + file.uuid))
+        #Close the file
+        file.close ()
+        self.fat.sync (path)
+        #Return exit code
         return ret
 
     #Read data from file
     def read (self, path, length, offset, fh):
+        if self.DEBUG: print ("read", path)
         os.lseek (fh, offset, os.SEEK_SET)
-        self.list [path][2] = True
+        self.fat.fetch(path).read = True
         return os.read (fh, length)
 
     #Write data to file
     def write (self, path, buf, offset, fh):
+        if self.DEBUG: print ("write", path)
         os.lseek (fh, offset, os.SEEK_SET)
-        self.list [path][1] = True
+        self.fat.fetch(path).changed = True
         return os.write (fh, buf)
 
     #Truncate file
-    def truncate (self, path, length, fh = None):
+    def truncate (self, path, length, fh=None):
         if self.DEBUG: print ("truncate", path)
-
-        with open (self.cache + path, 'r+') as f:
+        file = self.fat.fetch(path)
+        with open (self.cache + file.uuid, 'r+') as f:
             f.truncate (length)
-        self.list [path][1] = True
+        file.changed = True
 
     #Needed to create file
-    def create (self, path, mode, fi=None):
+    def create (self, path, mode, fh=None):
         if self.DEBUG: print ("create", path)
 
+        #Add file stub to FAT
+        self.fat.createFile (path)
+        file = self.fat.fetch(path)
+        file.downloaded = True
+        file.changed = True
+        file.openCount = 1
         #Create file in cache
         uid, gid, pid = fuse.fuse_get_context ()
-        fd = os.open (self.cache + path, os.O_WRONLY | os.O_CREAT, mode)
-        os.chown (self.cache + path, uid, gid) #chown to context uid & gid
-        #Sync file to source
-        self.ops.sync (path)
-        #Add file to list
-        self.list [path] = [1, False, False]
-        #Change metadata for FS
+        fh = os.open (self.cache + file.uuid, os.O_WRONLY | os.O_CREAT, mode)
+        os.chown (self.cache + file.uuid, uid, gid) #chown to context uid & gid
+        #Set metadata in FAT
         self.chown (path, uid, gid)
         self.chmod (path, mode)
         self.utimens (path)
-        return fd
+        #Return
+        return fh
 
     #Rename file
-    def rename (self, old, new):
+    def rename (self, old, new, flags=0):
         if self.DEBUG: print ("rename", old, new)
-
-        #Rename in cache
-        if os.path.exists (self.cache + old):
-            os.rename (self.cache + old, self.cache + new)
-        #Rename at source
-        self.ops.rename (old, new)
-        #Make change in list of open files
-        if old in self.list.keys ():
-            self.list [new] = self.list.pop (old)
-        self.ops.changeMetadata (new, "st_ctime", time.time ())
+        self.fat.rename (old, new)
+        self.fat.changeMetadata (new, "st_ctime", time.time_ns ())
+        self.fat.write ()
