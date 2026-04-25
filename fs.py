@@ -1,5 +1,5 @@
 #Provides class for FUSE filesystem functionality
-#Copyright (C) 2024-2025 Gositi
+#Copyright (C) 2024-2026 Gositi
 #License (GPL 3.0) provided in file 'LICENSE'
 
 #Derived from https://github.com/skorokithakis/python-fuse-sample
@@ -8,7 +8,7 @@
 
 import os
 import errno
-import fuse
+import mfusepy as fuse
 import time
 
 class Filesystem (fuse.Operations):

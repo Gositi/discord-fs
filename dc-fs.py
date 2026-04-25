@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 
 #Discord-fs, uses Discord as cloud storage accessed through a filesystem
-#Copyright (C) 2024-2025 Gositi
+#Copyright (C) 2024-2026 Gositi
 #License (GPL 3.0) provided in file 'LICENSE'
 
 import fs, fat, api
-import fuse
+import mfusepy as fuse
 import sys
 import os
 import subprocess
@@ -18,7 +18,7 @@ def main(DEBUG = False):
 
     print ("""
     Discord-fs (dc-fs): Discord as cloud storage, in your filesystem.
-    Copyright (C) 2024-2025  Gositi
+    Copyright (C) 2024-2026  Gositi
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by

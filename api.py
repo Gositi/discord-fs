@@ -1,4 +1,6 @@
-#!/usr/bin/env python3
+#Provides API access to Discord
+#Copyright (C) 2024-2025 Gositi
+#License (GPL 3.0) provided in file 'LICENSE'
 
 import json
 import requests as rq
