@@ -32,7 +32,7 @@ The data (in default order) which you need to fill in is the following:
 - `channel` - Filesystem channel (string): The ID of the channel the filesystem operates in
 
 ### Limitations
-I plan to fix many of these limitations in later versions of the program, but until then it is good if you know about them.
+I plan to fix many of these limitations in later versions of the program, but since I maintain this for fun that might take a while or possibly even never happen at all.
 - The filesystem is, of course, quite slow (especially for large files)
 - No support for directories
 - Files are fully accessible by anyone with access to the filesystem channel
@@ -40,19 +40,12 @@ I plan to fix many of these limitations in later versions of the program, but un
 - No file permissions checks supported, that is considered out of scope
 
 ## Bugs
-Here is a list of all currently known bugs and issues, prioritized by functionality impact.
-
-### Critical
-These bugs will be fixed in the next patch release.
-
-### Important
-These bugs will either be fixed in the next patch release or minor release.
-
-### Other
-These bugs will be fixed whenever there is time, but most likely in a future minor release.
+If you find any bug, please report it as an issue.
+These are the currently known bugs:
+- Terminating the program with e.g. `^C` causes it to exit with an error, use `unmount` on the mount directory instead.
 
 ## Roadmap
-Updated versions of this program will be released continuously (whenever I decide to work on it).
+Updated versions of this program will be released whenever I decide to work on it.
 Please read the release notes for each new release, they might contain important information.
 
 Below is how I currently plan on going forward with the project.
@@ -61,8 +54,6 @@ Below is how I currently plan on going forward with the project.
 - Fix bugs or minor issues as they appear
 
 ### Next minor release (dev branch)
-- Encryption of files
-- Obfuscation of filenames
 - File integrity verification
 
 ### Future minor releases
@@ -78,15 +69,9 @@ Below is how I currently plan on going forward with the project.
 - Multiple clients connected to the same filesystem
 
 ## Legal
-Copyright (C) 2024-2025 Gositi
+Copyright (C) 2024-2026 Gositi
 
 License (GPL 3.0) provided in file `LICENSE`
-
-Partially derived from https://github.com/skorokithakis/python-fuse-sample/blob/master/passthrough.py
-
-Copyright (C) 2016 Stavros Korokithakis
-
-License (BSD-2-Clause) provided in file `LICENSE-2`
 
 This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
 without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.

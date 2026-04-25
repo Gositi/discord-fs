@@ -2,10 +2,6 @@
 #Copyright (C) 2024-2026 Gositi
 #License (GPL 3.0) provided in file 'LICENSE'
 
-#Derived from https://github.com/skorokithakis/python-fuse-sample
-#Copyright (C) 2016 Stavros Korokithakis
-#License (BSD-2-Clause) provided in file 'LICENSE-2'
-
 import os
 import errno
 import mfusepy as fuse
